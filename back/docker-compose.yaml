@@ -1,14 +1,14 @@
 version: '3.8'
 services:
-  # app:
-    # build: .
-    # ports:
-    #   - "8081:8081"
-    # depends_on:
-    #   - db
-    # volumes:
-    #   - ./:/app
- 
+  air:
+    image: cosmtrek/air:latest
+    depends_on:
+      - db
+    working_dir: /usr/src/app
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - .:/usr/src/app
   db:
     image: postgres:latest
     environment:

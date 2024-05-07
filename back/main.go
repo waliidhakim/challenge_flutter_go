@@ -2,13 +2,14 @@ package main
 
 import (
 	"backend/initializers"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
-	"time"
 )
 
 type Test struct {

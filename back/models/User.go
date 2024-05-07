@@ -12,5 +12,5 @@ type User struct {
 	Password  string
 	AvatarUrl string
 	Role      string
-	Phone     string
+	Phone     string `gorm:"unique"`
 }

@@ -6,17 +6,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"time"
 )
-
-type Test struct {
-	gorm.Model
-	Name  string
-	Value string
-}
 
 func init() {
 	initializers.InitLogger()
@@ -49,6 +42,7 @@ func main() {
 	router.GET("/user/:id", controllers.UserGetById)
 	router.PATCH("/user/:id", controllers.UserUpdate)
 	router.DELETE("/user/:id", controllers.UserDelete)
+	router.POST("/user/login", controllers.UserLogin)
 
 	err := router.Run()
 	if err != nil {

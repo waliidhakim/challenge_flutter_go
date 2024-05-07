@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	roles "backend/constants"
 	"backend/initializers"
 	"backend/models"
+	roleCheck "backend/utils"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -56,7 +58,7 @@ func UserPost(context *gin.Context) {
 		Phone:     body.Phone,
 		Password:  string(hashedPassword),
 		AvatarUrl: "/default.png",
-		Role:      "user",
+		Role:      roles.User,
 	}
 	result := initializers.DB.Create(&user)
 	if result.Error != nil {
@@ -77,6 +79,10 @@ func UserPost(context *gin.Context) {
 
 func UserUpdate(context *gin.Context) {
 	id := context.Param("id")
+	if !roleCheck.IsAdminOrAccountOwner(context, id) {
+		context.Status(http.StatusUnauthorized)
+		return
+	}
 	var body struct {
 		Firstname string
 		Lastname  string
@@ -104,6 +110,10 @@ func UserUpdate(context *gin.Context) {
 
 func UserDelete(context *gin.Context) {
 	id := context.Param("id")
+	if !roleCheck.IsAdminOrAccountOwner(context, id) {
+		context.Status(http.StatusUnauthorized)
+		return
+	}
 	initializers.DB.Delete(&models.User{}, id)
 	context.Status(http.StatusOK)
 }

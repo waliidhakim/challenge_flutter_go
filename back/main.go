@@ -3,6 +3,7 @@ package main
 import (
 	"backend/controllers"
 	"backend/initializers"
+	"backend/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -41,7 +42,7 @@ func main() {
 	router.GET("/user", controllers.UserGet)
 	router.GET("/user/:id", controllers.UserGetById)
 	router.PATCH("/user/:id", controllers.UserUpdate)
-	router.DELETE("/user/:id", controllers.UserDelete)
+	router.DELETE("/user/:id", middlewares.RequireAuth, controllers.UserDelete)
 	router.POST("/user/login", controllers.UserLogin)
 
 	err := router.Run()

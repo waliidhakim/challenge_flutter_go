@@ -40,7 +40,6 @@ func RequireAuth(context *gin.Context) {
 			return
 		}
 
-		context.Set("userRole", user.Role)
 		context.Set("userId", user.ID)
 	} else {
 		initializers.Logger.Errorln(jwtErr)

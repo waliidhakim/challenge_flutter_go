@@ -1,7 +1,9 @@
 package main
 
 import (
+	"backend/controllers"
 	"backend/initializers"
+	"backend/middlewares"
 	"net/http"
 	"os"
 	"time"
@@ -9,14 +11,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"gorm.io/gorm"
 )
-
-type Test struct {
-	gorm.Model
-	Name  string
-	Value string
-}
 
 func init() {
 	initializers.InitLogger()
@@ -37,19 +32,22 @@ func main() {
 		ExposeHeaders: []string{"Content-Length"},
 		MaxAge:        12 * time.Hour,
 	}))
+
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "ping",
+			"message": "pong",
 		})
 	})
+	// USER Routes
+	router.POST("/user", controllers.UserPost)
+	router.GET("/user", controllers.UserGet)
+	router.GET("/user/:id", controllers.UserGetById)
+	router.PATCH("/user/:id", controllers.UserUpdate)
+	router.DELETE("/user/:id", middlewares.RequireAuth, controllers.UserDelete)
+	router.POST("/user/login", controllers.UserLogin)
+
 	err := router.Run()
 	if err != nil {
 		panic("Error starting server")
-	}
-
-	// Création automatique de la table "tests" basée sur le modèle Test
-	// err = db.AutoMigrate(&Test{})
-	if err != nil {
-		panic("Creation of the table failed")
 	}
 }

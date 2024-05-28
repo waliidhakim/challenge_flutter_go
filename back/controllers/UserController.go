@@ -6,13 +6,14 @@ import (
 	"backend/models"
 	roleCheck "backend/utils"
 	"errors"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
-	"time"
 )
 
 func UserGet(context *gin.Context) {
@@ -166,5 +167,7 @@ func UserLogin(context *gin.Context) {
 	context.SetSameSite(http.SameSiteLaxMode)
 	// @todo change "secure" to true when on production
 	context.SetCookie("Authorization", tokenString, 3600*6, "", "", false, true)
-	context.JSON(http.StatusOK, gin.H{})
+	context.JSON(http.StatusOK, gin.H{
+		"token": tokenString,
+	})
 }

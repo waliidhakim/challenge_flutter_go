@@ -4,12 +4,13 @@ import (
 	"backend/controllers"
 	"backend/initializers"
 	"backend/middlewares"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 func init() {
@@ -26,9 +27,10 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{"PUT", "PATCH, GET, DELETE"},
-		AllowHeaders:  []string{"Origin"},
+		AllowMethods:  []string{"PUT", "PATCH, GET, DELETE", "POST"},
+		AllowHeaders:  []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders: []string{"Content-Length"},
+        AllowCredentials: true, //for cookies
 		MaxAge:        12 * time.Hour,
 	}))
 

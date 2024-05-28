@@ -4,19 +4,25 @@ import (
 	"backend/initializers"
 	"backend/models"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func RequireAuth(context *gin.Context) {
-	tokenString, cookieErr := context.Cookie("Authorization")
-	if cookieErr != nil {
+	tokenString := context.GetHeader("Authorization")
+	fmt.Println("Token : ", tokenString)
+	if tokenString == "" {
 		context.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
+
+	// Supprimer le préfixe 'Bearer ' si présent
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 	token, jwtErr := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

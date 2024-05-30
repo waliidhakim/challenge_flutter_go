@@ -50,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black12,
       body: Container(
         color: Theme.of(context).colorScheme.primaryContainer,
         constraints: const BoxConstraints.expand(),
@@ -61,33 +60,36 @@ class _LoginScreenState extends State<LoginScreen> {
               Expanded(
                 child: Container(
                     padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+                    alignment: Alignment.center,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           "Votre aventure",
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w600,
-                              height: 1.2),
+                              fontSize: 30,
+                              fontWeight: FontWeight.w500,
+                              height: 1),
                         ),
                         Text(
                           "EventEve",
                           textAlign: TextAlign.left,
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
-                              fontSize: 48,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 40,
+                              fontWeight: FontWeight.w700,
                               height: 1),
                         ),
                         Text(
                           "commence\nmaintenant",
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w600,
-                              height: 1.2),
+                              fontSize: 30,
+                              fontWeight: FontWeight.w500,
+                              height: 1,
+                          ),
                         ),
                       ],
                     )),

@@ -15,7 +15,7 @@ class App extends StatelessWidget {
         HomeScreen.routeName: (context) => const HomeScreen(),
       },
       theme: ThemeData(
-        brightness: Brightness.dark
+        brightness: Brightness.light
       ),
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web/Stats_page.dart';
+import 'package:flutter_web/stats_page.dart';
 import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';
 
@@ -9,20 +9,37 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Accueil')),
+      appBar: AppBar(
+        title: Text(
+          'Accueil',
+          style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold), // Couleur blanche et texte en gras
+        ),
+        centerTitle: true, // Centre le titre
+        backgroundColor:
+            Colors.lightBlue[100], // Couleur de fond de la barre de navigation
+        elevation: 4.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(10), // Bordure arrondie pour l'appBar
+          ),
+        ),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Color.fromARGB(255, 119, 203,
+                    241), // Harmonisation des couleurs avec le bouton de connexion
               ),
               child: Text('Menu Admin',
                   style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
-              leading: const Icon(Icons.people),
+              leading: const Icon(Icons.people, color: Colors.lightBlue),
               title: const Text('Utilisateurs'),
               onTap: () {
                 Navigator.push(
@@ -32,7 +49,7 @@ class HomePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.bar_chart),
+              leading: const Icon(Icons.bar_chart, color: Colors.lightBlue),
               title: const Text('Statistiques'),
               onTap: () {
                 Navigator.push(context,
@@ -40,7 +57,7 @@ class HomePage extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.exit_to_app),
+              leading: const Icon(Icons.exit_to_app, color: Colors.lightBlue),
               title: const Text('Déconnexion'),
               onTap: () {
                 // Gérer la déconnexion ici
@@ -51,7 +68,12 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: const Center(child: Text('Bienvenue sur la page d\'accueil')),
+      body: const Center(
+        child: Text(
+          'Bienvenue sur la page d\'accueil',
+          style: TextStyle(fontSize: 20), // Style ajouté pour agrandir le texte
+        ),
+      ),
     );
   }
 }

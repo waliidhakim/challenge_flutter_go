@@ -1,8 +1,9 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type GroupChat struct {
@@ -12,4 +13,6 @@ type GroupChat struct {
 	CatchPhrase string
 	Alert       string
 	AlertDate   time.Time
+
+	Users []GroupChatUser `gorm:"foreignKey:GroupChatID"`
 }

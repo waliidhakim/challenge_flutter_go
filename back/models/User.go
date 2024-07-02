@@ -13,4 +13,6 @@ type User struct {
 	AvatarUrl string
 	Role      string
 	Phone     string `gorm:"unique"`
+
+	GroupChats []GroupChatUser `gorm:"foreignKey:UserID"`
 }

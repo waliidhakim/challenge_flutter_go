@@ -6,10 +6,14 @@ import (
 	"backend/models"
 	roleCheck "backend/utils"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -170,4 +174,84 @@ func UserLogin(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{
 		"token": tokenString,
 	})
+}
+
+func UserPostWithImage(context *gin.Context) {
+	// Réception des données de formulaire
+	firstname := context.PostForm("firstname")
+	lastname := context.PostForm("lastname")
+	username := context.PostForm("username")
+	password := context.PostForm("password")
+	phone := context.PostForm("phone")
+
+	// Réception du fichier
+	file, err := context.FormFile("avatar")
+	if err != nil {
+		initializers.Logger.Errorln("Error retrieving the file")
+		context.JSON(http.StatusBadRequest, gin.H{"error": "No file is received"})
+		return
+	}
+
+	// Créer une session AWS
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String("eu-central-1"), // ou votre région AWS
+	})
+	if err != nil {
+		log.Println("Error creating AWS session:", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	// Créer un uploader avec la session
+	uploader := s3manager.NewUploader(sess)
+
+	// Ouvrir le fichier
+	src, err := file.Open()
+	if err != nil {
+		log.Println("Error opening file:", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+	defer src.Close()
+
+	// Uploader le fichier
+	uploadOutput, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String("challange-esgi"),
+		Key:    aws.String("user-avatars/" + file.Filename),
+		Body:   src,
+	})
+	if err != nil {
+		log.Println("Failed to upload file to S3:", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	// Hasher le mot de passe
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println("Error hashing password:", err)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+
+	// Créer l'utilisateur avec l'URL de l'image sur S3
+	user := models.User{
+		Firstname: firstname,
+		Lastname:  lastname,
+		Username:  username,
+		Phone:     phone,
+		Password:  string(hashedPassword),
+		AvatarUrl: uploadOutput.Location, // URL de l'image stockée sur S3
+		Role:      "user",                // Supposer que le rôle est défini quelque part comme constante
+	}
+
+	// Sauvegarder l'utilisateur dans la base de données
+	if err := initializers.DB.Create(&user).Error; err != nil {
+		log.Println("Database error:", err)
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	// Répondre avec succès et les données de l'utilisateur
+	context.JSON(http.StatusCreated, gin.H{"user": user})
 }

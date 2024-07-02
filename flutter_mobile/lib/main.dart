@@ -11,8 +11,8 @@ class MyApp extends StatelessWidget {
   // Function to perform API call
   Future<void> callApi() async {
     try {
-      final response = await http.get(Uri.parse(
-          'http://10.0.2.2:8081/test')); // Use IP for Android Emulator
+      final response = await http.get(
+          Uri.parse('http://10.0.2.2:4000')); // Use IP for Android Emulator
       showDialog(
         context: navigatorKey.currentContext!,
         builder: (context) => AlertDialog(

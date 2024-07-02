@@ -46,7 +46,16 @@ func main() {
 	router.PATCH("/user/:id", controllers.UserUpdate)
 	router.DELETE("/user/:id", middlewares.RequireAuth, controllers.UserDelete)
 	router.POST("/user/login", controllers.UserLogin)
+    //test image upload  
+     router.POST("/user/with-image", controllers.UserPostWithImage)
 
+  // GroupChat Routes
+	router.GET("/group-chat", middlewares.RequireAuth, controllers.GroupChatGet)
+    router.GET("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatGetById)
+    router.POST("/group-chat", middlewares.RequireAuth, controllers.GroupChatPost) 
+    router.PATCH("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatUpdate)
+  router.DELETE("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatDelete)
+  
 	err := router.Run()
 	if err != nil {
 		panic("Error starting server")

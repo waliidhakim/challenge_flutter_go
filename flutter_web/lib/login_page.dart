@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                           children: <Widget>[
                             TextFormField(
                               controller: _phoneController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Phone',
                                 hintText: 'Enter your phone number',
                               ),
@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             TextFormField(
                               controller: _passwordController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Password',
                                 hintText: 'Enter your password',
                               ),
@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 30, vertical: 15),
                               ),
                             ),
@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(_errorMessage,
-                                    style: TextStyle(color: Colors.red)),
+                                    style: const TextStyle(color: Colors.red)),
                               ),
                           ],
                         ),

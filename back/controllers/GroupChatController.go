@@ -4,6 +4,7 @@ import (
 	"backend/initializers"
 	"backend/models"
 	"backend/services"
+	utils "backend/utils"
 	"errors"
 	"net/http"
 
@@ -42,9 +43,8 @@ func GroupChatGetById(context *gin.Context) {
 		return
 	}
 
-	// Si trouvé, récupérer le GroupChat
 	var groupChat models.GroupChat
-	result = initializers.DB.First(&groupChat, grouChatId)
+	result = initializers.DB.Preload("Users").First(&groupChat, grouChatId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			context.JSON(http.StatusNotFound, gin.H{"error": "Group chat not found"})
@@ -54,8 +54,26 @@ func GroupChatGetById(context *gin.Context) {
 		return
 	}
 
-	// Renvoyer le GroupChat
-	context.JSON(http.StatusOK, groupChat)
+	// Retrieve owner information
+	var owner models.User
+	result = initializers.DB.Joins("JOIN group_chat_users ON users.id = group_chat_users.user_id").
+		Where("group_chat_users.group_chat_id = ? AND group_chat_users.role = ?", grouChatId, "owner").
+		First(&owner)
+	if result.Error != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat owner"})
+		return
+	}
+
+	// Prepare response
+	response := struct {
+		models.GroupChat
+		Owner models.User `json:"owner"`
+	}{
+		GroupChat: groupChat,
+		Owner:     owner,
+	}
+
+	context.JSON(http.StatusOK, response)
 }
 
 func GroupChatPost(context *gin.Context) {
@@ -87,10 +105,22 @@ func GroupChatPost(context *gin.Context) {
 		return
 	}
 
+	// Réception du fichier
+	file, err := context.FormFile("avatar")
+	var imageUrl string
+	if err == nil {
+		imageUrl, err = utils.UploadImageToS3(*file, "group-chats")
+		if err != nil {
+			context.Status(http.StatusInternalServerError)
+			return
+		}
+	}
+
 	groupChat := models.GroupChat{
 		Name:        body.Name,
 		Activity:    body.Activity,
 		CatchPhrase: body.CatchPhrase,
+		ImageUrl:    imageUrl,
 	}
 	result := initializers.DB.Create(&groupChat)
 	if result.Error != nil {

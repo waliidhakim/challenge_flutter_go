@@ -12,6 +12,7 @@ type GroupChat struct {
 	Activity    string
 	CatchPhrase string
 	Alert       string
+	ImageUrl    string
 	AlertDate   time.Time
 
 	Users []GroupChatUser `gorm:"foreignKey:GroupChatID"`

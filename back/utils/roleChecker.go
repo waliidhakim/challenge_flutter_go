@@ -1,9 +1,10 @@
-package roleCheck
+package utils
 
 import (
 	roles "backend/constants"
 	"backend/initializers"
 	"backend/models"
+
 	"github.com/gin-gonic/gin"
 )
 

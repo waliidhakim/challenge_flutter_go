@@ -1,20 +1,17 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/screens/home/home_screen.dart';
-import 'package:flutter_mobile/screens/login/login_screen.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_mobile/utils/screen_arguments.dart';
+import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:http/http.dart' as http;
-
-class ScreenArguments {
-  final String userId;
-
-  ScreenArguments(this.userId);
-}
-
+import 'package:http_parser/http_parser.dart';
 
 class OnboardScreen extends StatefulWidget {
-  const OnboardScreen({super.key});
+  final ScreenArguments arguments;
+
+  const OnboardScreen({Key? key, required this.arguments}) : super(key: key);
 
   static String routeName = '/onboard';
 
@@ -34,6 +31,7 @@ class _OnboardScreenState extends State<OnboardScreen> {
   String firstname = '';
   String lastname = '';
   String username = '';
+  File? _avatar;
 
   bool _validate = false;
   String _errorMessage = '';
@@ -45,18 +43,34 @@ class _OnboardScreenState extends State<OnboardScreen> {
     super.dispose();
   }
 
+  postAccountConfig(String userId) async {
+    final token =
+        sharedPrefs.token; // Récupérer le token depuis les shared preferences
 
-  postAccountConfig(userId) async {
-    final response = await http.patch(
-        Uri.parse('http://10.0.2.2:4000/user/$userId'),
-        headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({
-          'firstname': firstname.toString(),
-          'lastname': lastname.toString(),
-          'username': username.toString(),
-          'onboarding': false,
-        }));
-    final data = jsonDecode(response.body);
+    var request = http.MultipartRequest(
+      'PATCH',
+      Uri.parse('http://10.0.2.2:4000/user/$userId'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.fields['Firstname'] = firstname;
+    request.fields['Lastname'] = lastname;
+    request.fields['Username'] = username;
+    request.fields['onboarding'] = 'false';
+
+    if (_avatar != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'avatar',
+          _avatar!.path,
+          contentType: MediaType('image', 'jpeg'), // ou l'extension appropriée
+        ),
+      );
+    }
+
+    final response = await request.send();
+    final responseData = await response.stream.bytesToString();
+    final data = jsonDecode(responseData);
+
     if (response.statusCode == 400) {
       setState(() {
         _validate = _controller.text.isEmpty;
@@ -64,18 +78,18 @@ class _OnboardScreenState extends State<OnboardScreen> {
       });
     } else if (response.statusCode == 500) {
       showDialog(
-          context: context,
-          builder: (context) =>
-              AlertDialog(
-                title: const Text('Erreur'),
-                content:
-                const Text('Erreur de nos service, réessayez plus tard.'),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text("Ok"))
-                ],
-              ));
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Erreur'),
+          content: const Text('Erreur de nos services, réessayez plus tard.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text("Ok"),
+            ),
+          ],
+        ),
+      );
       setState(() {
         _validate = false;
       });
@@ -86,10 +100,7 @@ class _OnboardScreenState extends State<OnboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute
-        .of(context)!
-        .settings
-        .arguments as ScreenArguments;
+    final args = widget.arguments;
     return Scaffold(
       appBar: AppBar(),
       body: Container(
@@ -100,18 +111,12 @@ class _OnboardScreenState extends State<OnboardScreen> {
           children: [
             Text(
               "Votre compte a bien été créé !",
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .titleLarge,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
             Text(
               "Renseignez vos informations de profil avant de pouvoir utiliser l'application.",
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
             TextField(
@@ -143,34 +148,39 @@ class _OnboardScreenState extends State<OnboardScreen> {
             const SizedBox(height: 32),
             Center(
               child: GestureDetector(
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   maxRadius: 64,
-                  child: Icon(Icons.add_a_photo),
+                  backgroundImage: _avatar != null ? FileImage(_avatar!) : null,
+                  child: _avatar == null ? Icon(Icons.add_a_photo) : null,
                 ),
                 onTap: () async {
                   var picked =
-                  await FilePicker.platform.pickFiles(type: FileType.image);
+                      await FilePicker.platform.pickFiles(type: FileType.image);
                   if (picked != null) {
-                    print(picked.files.first.name);
+                    setState(() {
+                      _avatar = File(picked.files.first.path!);
+                    });
                   }
                 },
               ),
             ),
             Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            child: FilledButton(
-                              onPressed: () => postAccountConfig(args.userId),
-                              child: const Text("Finaliser votre compte"),
-                            ))
-                      ],
-                    )
-                  ],
-                ))
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () => postAccountConfig(args.userId),
+                          child: const Text("Finaliser votre compte"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

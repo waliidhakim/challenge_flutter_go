@@ -4,6 +4,7 @@ import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
 import 'package:flutter_mobile/widgets/long_press_item.dart';
+import 'package:flutter_mobile/widgets/navbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_mobile/screens/login/login_screen.dart';
 import 'package:flutter_mobile/services/groupe_chat_service.dart';
@@ -101,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Groupes")),
+      bottomNavigationBar: const Navbar(),
       body: Column(
         children: [
           Padding(

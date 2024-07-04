@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/widgets/navbar.dart';
 import 'package:go_router/go_router.dart';
 
 class GroupChatScreen extends StatefulWidget {
@@ -45,6 +46,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Chat Group")),
+      bottomNavigationBar: const Navbar(),
       body: Column(
         children: [
           Expanded(

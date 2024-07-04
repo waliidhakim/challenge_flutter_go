@@ -27,10 +27,12 @@
 // }
 
 import 'package:flutter/material.dart';
-import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
+import 'package:flutter_mobile/screens/calendar/calendar_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
+import 'package:flutter_mobile/screens/notifications/notifications_screen.dart';
+import 'package:flutter_mobile/screens/settings/settings_screen.dart';
 import 'package:flutter_mobile/utils/screen_arguments.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_mobile/screens/home/home_screen.dart';
@@ -56,9 +58,30 @@ class App extends StatelessWidget {
               const LoginScreen(),
         ),
         GoRoute(
-          path: '/home',
-          builder: (BuildContext context, GoRouterState state) =>
-              const HomeScreen(),
+          path: HomeScreen.routeName,
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage(child: HomeScreen()),
+        ),
+        GoRoute(
+          path: NotificationScreen.routeName,
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage(child: NotificationScreen()),
+        ),
+        GoRoute(
+          path: CalendarScreen.routeName,
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              NoTransitionPage(
+            key: state.pageKey,
+            child: const CalendarScreen(),
+          ),
+        ),
+        GoRoute(
+          path: SettingsScreen.routeName,
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              NoTransitionPage(
+            key: state.pageKey,
+            child: const SettingsScreen(),
+          ),
         ),
         GoRoute(
           path: '/onboard',

@@ -2,8 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/screens/home/home_screen.dart';
-import 'package:flutter_mobile/screens/onboard/onboard_screen.dart';
+import 'package:flutter_mobile/utils/screen_arguments.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class LoginScreen extends StatefulWidget {
   static String routeName = '/login';
 
   static Future<void> navigateTo(BuildContext context) {
-    return Navigator.of(context).pushNamed(routeName);
+    return context.push(routeName);
   }
 
   @override
@@ -34,49 +35,78 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> register(BuildContext context) async {
-    final response =
-    await http.post(Uri.parse('http://10.0.2.2:4000/user'),
+    final response = await http.post(
+        Uri.parse('http://10.0.2.2:4000/user/register'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({
-          'phone': phone.toString(),
-          'password': password.toString(),
-        }));
+        body: jsonEncode(
+            {'phone': phone.toString(), 'password': password.toString()}));
+
     final data = jsonDecode(response.body);
-    if (response.statusCode == 400) {
+
+    if (response.statusCode == 409) {
       setState(() {
         _validate = true;
-        _errorMessage = "Compte existant avec ce téléphone";
+        _errorMessage = "Un compte existe déjà avec ce téléphone";
       });
     } else if (response.statusCode == 500) {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Erreur'),
-            content: const Text('Erreur de nos service, réessayez plus tard.'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Ok"))
-            ],
-          )
-      );
+                title: const Text('Erreur'),
+                content:
+                    const Text('Erreur de nos services, réessayez plus tard.'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text("Ok"))
+                ],
+              ));
       setState(() {
         _validate = false;
       });
-    } else {
-      try {
-        final token = await apiLogin();
-        sharedPrefs.token = token;
-        OnboardScreen.navigateTo(context, data["ID"].toString());
-      } catch(e) {
+    } else if (response.statusCode == 201) {
+      print(
+          "----------------------register complete------------------------------");
+
+      // Appeler apiLogin pour récupérer le token et l'utilisateur ID
+      final token = await apiLogin();
+      if (token.isNotEmpty) {
+        sharedPrefs.token = token; // Sauvegarde du token
+
+        // Récupérer l'user ID (si disponible dans la réponse de l'API)
+        final userId = data['user']['ID']?.toString() ?? '';
+        print("---------------ID of User created $userId----------------");
+        // Vérifier que l'user ID n'est pas vide
+        if (userId.isNotEmpty) {
+          context.go('/onboard', extra: ScreenArguments(userId));
+        } else {
+          // Gérer l'erreur si l'user ID n'est pas valide ou manquant
+          showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                    title: const Text('Erreur de connexion'),
+                    content: const Text(
+                        'Impossible de récupérer l\'ID utilisateur.'),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("OK"))
+                    ],
+                  ));
+        }
+      } else {
+        // Gérer l'erreur si le token n'est pas valide ou manquant
         showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Erreur'),
-              content: const Text('Erreur de nos service, réessayez plus tard.'),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: Text("Ok"))
-              ],
-            )
-        );
+                  title: const Text('Erreur de connexion'),
+                  content: const Text('Impossible de récupérer le token.'),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("OK"))
+                  ],
+                ));
       }
     }
   }
@@ -84,51 +114,60 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<String> apiLogin() async {
     try {
       final response =
-      await http.post(Uri.parse('http://10.0.2.2:4000/user/login'),
-          headers: {'Content-Type': 'application/json; charset=UTF-8'},
-          body: jsonEncode({
-            'phone': phone.toString(),
-            'password': password.toString(),
-          }));
+          await http.post(Uri.parse('http://10.0.2.2:4000/user/login'),
+              headers: {'Content-Type': 'application/json; charset=UTF-8'},
+              body: jsonEncode({
+                'phone': phone.toString(),
+                'password': password.toString(),
+              }));
       final data = jsonDecode(response.body);
       final token = data['token'];
       if (response.statusCode != 200) {
-       throw("Error when logging in");
+        throw ("Error when logging in");
       }
       return token;
-    } catch(e) {
+    } catch (e) {
       return '';
     }
   }
 
   Future<void> login(BuildContext context) async {
-    final response =
-        await http.post(Uri.parse('http://10.0.2.2:4000/user/login'),
-            headers: {'Content-Type': 'application/json; charset=UTF-8'},
-            body: jsonEncode({
-              'phone': phone.toString(),
-              'password': password.toString(),
-            }));
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:4000/user/login'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: jsonEncode({
+        'phone': phone.toString(),
+        'password': password.toString(),
+      }),
+    );
+
     final data = jsonDecode(response.body);
     if (response.statusCode == 400) {
       setState(() {
         _validate = true;
-        _errorMessage = "Mauvais téléphone";
+        _errorMessage = "Mauvais téléphone ou mot de passe";
       });
     } else if (response.statusCode == 500) {
       showDialog(
         context: context,
         builder: (context) => const AlertDialog(
           title: Text('Erreur'),
-          content: Text('Erreur de nos service, réessayez plus tard'),
-        )
+          content: Text('Erreur de nos services, réessayez plus tard'),
+        ),
       );
       setState(() {
         _validate = false;
       });
     } else {
       sharedPrefs.token = data['token'];
-      HomeScreen.navigateTo(context);
+      if (data['onboarding'] == true) {
+        // Rediriger vers la page d'onboarding
+        final userId = data['userId'].toString();
+        context.go('/onboard', extra: ScreenArguments(userId));
+      } else {
+        // Rediriger vers la page d'accueil
+        HomeScreen.navigateTo(context);
+      }
     }
   }
 

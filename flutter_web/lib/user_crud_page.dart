@@ -93,7 +93,33 @@ class _UserCrudPageState extends State<UserCrudPage> {
 
   DataRow _buildRow(User user) {
     return DataRow(cells: [
-      DataCell(Icon(Icons.person)),
+      DataCell(
+        user.avatarUrl != null && user.avatarUrl.isNotEmpty
+            ? Image.network(
+                user.avatarUrl,
+                width: 50, // Taille de l'image
+                height: 50,
+                fit: BoxFit.cover,
+                errorBuilder: (BuildContext context, Object exception,
+                    StackTrace? stackTrace) {
+                  // Si le chargement échoue, retourner une icône par défaut
+                  return Icon(Icons.person, size: 50);
+                },
+                loadingBuilder: (BuildContext context, Widget child,
+                    ImageChunkEvent? loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
+              )
+            : Icon(Icons.person, size: 50), // Si aucune URL n'est fournie
+      ),
       DataCell(Text(user.id.toString())),
       DataCell(Text(user.lastName)),
       DataCell(Text(user.firstName)),

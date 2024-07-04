@@ -13,5 +13,5 @@ type User struct {
 	AvatarUrl  string
 	Role       string
 	Phone      string `gorm:"unique; not null;default:null"`
-	Onboarding bool   `gorm:"default:true"`
+	Onboarding bool
 }

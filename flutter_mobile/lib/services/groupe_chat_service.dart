@@ -49,4 +49,23 @@ class GroupChatService {
 
     return response.statusCode == 200;
   }
+
+  Future<bool> addMembers(String groupChatId, List<String> members) async {
+    final response = await http.patch(
+      Uri.parse('http://10.0.2.2:4000/group-chat/$groupChatId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${sharedPrefs.token}',
+      },
+      body: jsonEncode({
+        'new_members': members,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

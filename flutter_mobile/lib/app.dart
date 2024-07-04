@@ -27,6 +27,7 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
@@ -69,7 +70,7 @@ class App extends StatelessWidget {
         GoRoute(
           path: '/createGroupChat',
           builder: (BuildContext context, GoRouterState state) =>
-              const CreateGroupChatScreen(), // Ajoutez cette ligne
+              const CreateGroupChatScreen(),
         ),
         GoRoute(
           path: '/groupChatDetail',
@@ -83,6 +84,15 @@ class App extends StatelessWidget {
           builder: (BuildContext context, GoRouterState state) {
             final groupId = state.extra as String;
             return GroupChatScreen(groupId: groupId);
+          },
+        ),
+        GoRoute(
+          path: '/add_members',
+          builder: (BuildContext context, GoRouterState state) {
+            final groupId = state.extra as String;
+            print(
+                "----------router to add member screen for group $groupId------------");
+            return AddMembersScreen(groupChatId: groupId);
           },
         ),
       ],

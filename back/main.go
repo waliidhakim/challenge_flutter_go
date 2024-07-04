@@ -52,7 +52,7 @@ func main() {
 	router.POST("/user/register", controllers.UserRegister)
 
 	// GroupChat Routes
-	router.GET("/group-chat", controllers.GroupChatGet)
+	router.GET("/group-chat", middlewares.RequireAuth, controllers.GroupChatGet)
 	router.GET("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatGetById)
 	router.POST("/group-chat", middlewares.RequireAuth, controllers.GroupChatPost)
 	router.PATCH("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatUpdate)

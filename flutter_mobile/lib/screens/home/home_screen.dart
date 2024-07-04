@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
@@ -52,6 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
           value: 'delete',
           child: Text('Supprimer'),
         ),
+        const PopupMenuItem<String>(
+          value: 'add_members',
+          child: Text('Ajouter des membres'),
+        ),
       ],
     );
 
@@ -65,6 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
           break;
         case 'delete':
           _deleteGroupChat(context, group.id);
+          break;
+        case 'add_members':
+          String groupId = group.id.toString();
+          print(
+              "--------------------Redirect to add_members page of the group $groupId----------------------------");
+          AddMembersScreen.navigateTo(context, group.id.toString());
           break;
       }
     }

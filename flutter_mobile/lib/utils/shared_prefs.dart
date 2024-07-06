@@ -8,9 +8,19 @@ class SharedPrefs {
   }
 
   String get token => _sharedPrefs.getString('token') ?? "";
+  String get userId => _sharedPrefs.getString('userId') ?? "";
+  String get username => _sharedPrefs.getString('username') ?? "";
 
   set token(String value) {
     _sharedPrefs.setString('token', value);
+  }
+
+  set userId(String value) {
+    _sharedPrefs.setString('userId', value);
+  }
+
+  set username(String value) {
+    _sharedPrefs.setString('username', value);
   }
 }
 

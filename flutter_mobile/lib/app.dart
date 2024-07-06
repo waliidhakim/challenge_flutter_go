@@ -28,6 +28,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/screens/calendar/calendar_screen.dart';
+import 'package:flutter_mobile/screens/debug/debud_prefs_screen.dart';
+import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
@@ -117,6 +119,12 @@ class App extends StatelessWidget {
                 "----------router to add member screen for group $groupId------------");
             return AddMembersScreen(groupChatId: groupId);
           },
+        ),
+        // Ajoutez cette route
+        GoRoute(
+          path: DebugPrefsScreen.routeName,
+          builder: (BuildContext context, GoRouterState state) =>
+              DebugPrefsScreen(),
         ),
       ],
       errorPageBuilder: (context, state) => MaterialPage(

@@ -160,12 +160,12 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } else {
       sharedPrefs.token = data['token'];
+      sharedPrefs.userId = data['userId'].toString();
       if (data['onboarding'] == true) {
-        // Rediriger vers la page d'onboarding
         final userId = data['userId'].toString();
         context.go('/onboard', extra: ScreenArguments(userId));
       } else {
-        // Rediriger vers la page d'accueil
+        sharedPrefs.username = data['username'];
         HomeScreen.navigateTo(context);
       }
     }

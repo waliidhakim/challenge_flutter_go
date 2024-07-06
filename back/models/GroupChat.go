@@ -15,5 +15,6 @@ type GroupChat struct {
 	ImageUrl    string
 	AlertDate   time.Time
 
-	Users []GroupChatUser `gorm:"foreignKey:GroupChatID"`
+	Users    []GroupChatUser    `gorm:"foreignKey:GroupChatID"`
+	Messages []GroupChatMessage `gorm:"foreignKey:GroupChatID"`
 }

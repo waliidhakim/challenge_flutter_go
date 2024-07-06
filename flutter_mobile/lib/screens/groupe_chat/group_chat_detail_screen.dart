@@ -6,8 +6,7 @@ import 'package:go_router/go_router.dart';
 class GroupChatDetailScreen extends StatelessWidget {
   final String groupId;
 
-  const GroupChatDetailScreen({Key? key, required this.groupId})
-      : super(key: key);
+  const GroupChatDetailScreen({super.key, required this.groupId});
 
   static String routeName = '/groupChatDetail';
 
@@ -35,7 +34,7 @@ class GroupChatDetailScreen extends StatelessWidget {
               children: [
                 Text(
                   groupChat.name,
-                  style: Theme.of(context).textTheme.headline5,
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text("Activité: ${groupChat.activity}"),

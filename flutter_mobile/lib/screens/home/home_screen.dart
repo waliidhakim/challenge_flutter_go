@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/screens/debug/debud_prefs_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
@@ -126,6 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red, // Background color
                   ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    DebugPrefsScreen.navigateTo(context);
+                  },
+                  child: Text('Debug Shared Preferences'),
                 ),
               ],
             ),

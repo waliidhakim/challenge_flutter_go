@@ -190,6 +190,7 @@ func UserLogin(context *gin.Context) {
 		"token":      tokenString,
 		"onboarding": user.Onboarding, // Ajouter cette ligne pour inclure le statut d'onboarding
 		"userId":     user.ID,         // Ajouter cette ligne pour inclure l'ID utilisateur
+		"username":   user.Username,
 	})
 }
 

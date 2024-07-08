@@ -27,13 +27,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<GroupChat>> groupChats;
-  late Future<Map<String, int>> unreadMessages;
+  // late Future<Map<String, int>> unreadMessages;
 
   @override
   void initState() {
     super.initState();
     groupChats = GroupChatService().fetchGroupChats();
-    unreadMessages = GroupChatService().fetchUnreadMessages();
+    // unreadMessages = GroupChatService().fetchUnreadMessages();
   }
 
   void _showPopupMenu(BuildContext context, GroupChat group) async {
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       setState(() {
         groupChats = GroupChatService().fetchGroupChats();
-        unreadMessages = GroupChatService().fetchUnreadMessages();
+        // unreadMessages = GroupChatService().fetchUnreadMessages();
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -167,34 +167,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else if (snapshot.hasError) {
                   return Center(child: Text("Erreur: ${snapshot.error}"));
                 }
-                return FutureBuilder<Map<String, int>>(
-                  future: unreadMessages,
-                  builder: (context, unreadSnapshot) {
-                    if (unreadSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (unreadSnapshot.hasError) {
-                      return Center(
-                          child: Text("Erreur: ${unreadSnapshot.error}"));
-                    }
-                    final unreadMessagesMap = unreadSnapshot.data!;
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        GroupChat group = snapshot.data![index];
-                        int unreadCount =
-                            unreadMessagesMap[group.id.toString()] ?? 0;
-                        return LongPressListItem(
-                          group: group,
-                          unreadCount: unreadCount,
-                          onTap: () {
-                            GroupChatScreen.navigateTo(
-                                context, group.id.toString(), group.name);
-                          },
-                          onLongPress: (LongPressStartDetails details) async {
-                            _showPopupMenu(context, group);
-                          },
-                        );
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    GroupChat group = snapshot.data![index];
+                    // int unreadCount = unreadMessagesMap[group.id.toString()] ?? 0;
+                    return LongPressListItem(
+                      group: group,
+                      unreadCount: 0, // ou 0 pour le moment
+                      onTap: () {
+                        GroupChatScreen.navigateTo(
+                            context, group.id.toString(), group.name);
+                      },
+                      onLongPress: (LongPressStartDetails details) async {
+                        _showPopupMenu(context, group);
                       },
                     );
                   },

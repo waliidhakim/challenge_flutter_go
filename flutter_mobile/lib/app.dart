@@ -31,6 +31,8 @@ import 'package:flutter_mobile/screens/calendar/calendar_screen.dart';
 import 'package:flutter_mobile/screens/debug/debud_prefs_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
+import 'package:flutter_mobile/screens/groupe_chat/edit_group_chat_screen.dart';
+
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
 import 'package:flutter_mobile/screens/notifications/notifications_screen.dart';
@@ -123,6 +125,19 @@ class App extends StatelessWidget {
             print(
                 "----------router to add member screen for group $groupId------------");
             return AddMembersScreen(groupChatId: groupId);
+          },
+        ),
+        GoRoute(
+          path: EditGroupChatScreen.routeName,
+          builder: (BuildContext context, GoRouterState state) {
+            final extra = state.extra as Map<String, String>;
+            return EditGroupChatScreen(
+              groupId: extra['groupId']!,
+              groupName: extra['groupName']!,
+              groupActivity: extra['groupActivity']!,
+              groupCatchPhrase: extra['groupCatchPhrase']!,
+              imageUrl: extra['imageUrl']!,
+            );
           },
         ),
         // Ajoutez cette route

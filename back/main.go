@@ -20,12 +20,13 @@ import (
 var db *gorm.DB
 
 type Message struct {
-	Type        string `json:"type"`
-	Username    string `json:"username"`
-	Message     string `json:"message"`
-	UserID      uint   `json:"user_id"`
-	GroupChatID uint   `json:"group_chat_id"`
-	SenderID    string `json:"sender_id"`
+	Type        string    `json:"type"`
+	Username    string    `json:"username"`
+	Message     string    `json:"message"`
+	UserID      uint      `json:"user_id"`
+	GroupChatID uint      `json:"group_chat_id"`
+	SenderID    string    `json:"sender_id"`
+	CreatedAt   time.Time `json:"created_at"` // Ajout de created_at
 }
 
 var clients = make(map[*websocket.Conn]bool)
@@ -81,21 +82,18 @@ func handleConnections(c *gin.Context) {
 		msg.Username = user.Username
 
 		// Save the message to the database
-
-		// Conversion de SenderID de string à uint64
 		SenderIDAsUint64, err := strconv.ParseUint(msg.SenderID, 10, 64)
 		if err != nil {
 			fmt.Println("Erreur lors de la conversion de SenderID:", err)
 			return
 		}
-
-		// Conversion de uint64 à uint
 		SenderIDAsUint := uint(SenderIDAsUint64)
 
 		groupChatMessage := models.GroupChatMessage{
 			Message:     msg.Message,
 			UserID:      SenderIDAsUint,
 			GroupChatID: msg.GroupChatID,
+			CreatedAt:   msg.CreatedAt, // Assurez-vous d'enregistrer également l'heure de création
 		}
 		result = db.Create(&groupChatMessage)
 		if result.Error != nil {
@@ -104,8 +102,6 @@ func handleConnections(c *gin.Context) {
 			initializers.Logger.Infoln("Message saved to database")
 		}
 
-		// Add SenderID and type to the message
-		//msg.SenderID = fmt.Sprintf("%d", msg.SenderID)
 		msg.Type = "message"
 		broadcast <- msg
 	}
@@ -169,6 +165,8 @@ func main() {
 	router.PATCH("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatUpdate)
 	router.DELETE("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatDelete)
 	router.GET("/group-chat/:id/messages", middlewares.RequireAuth, controllers.GroupChatGetMessages)
+
+	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 

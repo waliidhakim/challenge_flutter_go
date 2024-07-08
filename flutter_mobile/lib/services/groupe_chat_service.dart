@@ -86,4 +86,34 @@ class GroupChatService {
       throw Exception('Failed to load unread messages');
     }
   }
+
+  Future<bool> updateGroupChat(
+      String groupId, String name, String activity, String catchPhrase,
+      [String? imagePath]) async {
+    try {
+      var uri = Uri.parse('http://10.0.2.2:4000/group-chat/infos/$groupId');
+      var request = http.MultipartRequest('PATCH', uri)
+        ..headers['Authorization'] = 'Bearer ${sharedPrefs.token}'
+        ..fields['name'] = name
+        ..fields['activity'] = activity
+        ..fields['catchPhrase'] = catchPhrase;
+
+      if (imagePath != null) {
+        request.files
+            .add(await http.MultipartFile.fromPath('image', imagePath));
+      }
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('Failed to update group chat: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating group chat: $e');
+      return false;
+    }
+  }
 }

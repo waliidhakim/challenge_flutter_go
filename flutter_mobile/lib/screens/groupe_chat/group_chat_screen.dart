@@ -53,10 +53,10 @@ class GroupChatScreenState extends State<GroupChatScreen> {
             messages.insert(0, message);
           });
         } else if (message["type"] == "typing" &&
-            message["sender_id"] != userId) {
+            message["sender_id"].toString() != userId) {
           isTyping.value = true;
         } else if (message["type"] == "stop_typing" &&
-            message["sender_id"] != userId) {
+            message["sender_id"].toString() != userId) {
           isTyping.value = false;
         }
       },
@@ -101,6 +101,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
               "sender_id": msg['sender_id'],
               "username": msg['username'] ?? '',
               "message": msg['message'] ?? '',
+              "created_at":
+                  msg['created_at'], // Ajoutez l'heure de création ici
             };
           }).toList());
         });
@@ -174,8 +176,18 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                           ),
                         ),
                         child: ListTile(
-                          title: Text(isMe ? "Me" : message["username"]!),
-                          subtitle: Text(message["message"]!),
+                          title: Text(isMe ? "Me" : message["username"]),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(message["message"]),
+                              Text(
+                                message[
+                                    "created_at"], // Affichez l'heure de création
+                                style: TextStyle(fontSize: 10),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },

@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type GroupChatMessage struct {
 	gorm.Model
@@ -9,4 +13,5 @@ type GroupChatMessage struct {
 	User        User `gorm:"foreignKey:UserID"`
 	GroupChatID uint
 	GroupChat   GroupChat `gorm:"foreignKey:GroupChatID"`
+	CreatedAt   time.Time `json:"created_at"`
 }

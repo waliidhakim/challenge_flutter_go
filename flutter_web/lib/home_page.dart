@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web/stats_page.dart';
 import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';
+import 'package:flutter_web/group_chat_crud_page.dart'; // Importer la nouvelle page
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -54,6 +55,16 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => const StatsPage()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat, color: Colors.lightBlue),
+              title: const Text('Group Chats'),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const GroupChatCrudPage()));
               },
             ),
             ListTile(

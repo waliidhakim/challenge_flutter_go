@@ -6,14 +6,17 @@ import (
 	"backend/services"
 	utils "backend/utils"
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func GroupChatGet(context *gin.Context) {
-	var groupChats = services.GetGroupChats()
+	fmt.Println("get groupchats")
+	var groupChats = services.GetGroupChats(context)
 	context.JSON(http.StatusOK, groupChats)
 
 }
@@ -159,7 +162,7 @@ func GroupChatPost(context *gin.Context) {
 }
 
 func GroupChatUpdate(context *gin.Context) {
-	id := context.Param("id")
+	grouChatId := context.Param("id")
 
 	userId, exists := context.Get("userId")
 	if !exists {
@@ -176,9 +179,10 @@ func GroupChatUpdate(context *gin.Context) {
 
 	// Structure pour les données entrantes
 	var updateData struct {
-		Name        string `json:"name"`
-		Activity    string `json:"activity"`
-		CatchPhrase string `json:"catchPhrase"`
+		Name        string   `json:"name"`
+		Activity    string   `json:"activity"`
+		CatchPhrase string   `json:"catchPhrase"`
+		NewMembers  []string `json:"new_members"`
 	}
 	if err := context.BindJSON(&updateData); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
@@ -187,7 +191,7 @@ func GroupChatUpdate(context *gin.Context) {
 
 	// Vérifier si l'utilisateur est le propriétaire du GroupChat
 	var groupChatUser models.GroupChatUser
-	result := initializers.DB.Where("group_chat_id = ? AND user_id = ? AND role = ?", id, userID, "owner").First(&groupChatUser)
+	result := initializers.DB.Where("group_chat_id = ? AND user_id = ? AND role = ?", grouChatId, userID, "owner").First(&groupChatUser)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			context.JSON(http.StatusForbidden, gin.H{"error": "You are not the owner of this group chat"})
@@ -198,7 +202,7 @@ func GroupChatUpdate(context *gin.Context) {
 	}
 
 	// Mise à jour du GroupChat
-	update := initializers.DB.Model(&models.GroupChat{}).Where("id = ?", id).Updates(models.GroupChat{
+	update := initializers.DB.Model(&models.GroupChat{}).Where("id = ?", grouChatId).Updates(models.GroupChat{
 		Name:        updateData.Name,
 		Activity:    updateData.Activity,
 		CatchPhrase: updateData.CatchPhrase,
@@ -206,6 +210,36 @@ func GroupChatUpdate(context *gin.Context) {
 	if update.Error != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update group chat"})
 		return
+	}
+
+	//convert groupId to uint
+	grouChatIdTryParse, err := strconv.ParseUint(grouChatId, 10, 32)
+	if err != nil {
+		fmt.Println(err)
+	}
+	grouChatIdAsUint := uint(grouChatIdTryParse)
+
+	// Ajouter les nouveaux membres
+	for _, phone := range updateData.NewMembers {
+		var user models.User
+		if err := initializers.DB.Where("phone = ?", phone).First(&user).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				context.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("User with phone %s not found", phone)})
+				return
+			}
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			return
+		}
+
+		groupChatUser := models.GroupChatUser{
+			GroupChatID: grouChatIdAsUint,
+			UserID:      user.ID,
+			Role:        "member",
+		}
+		if err := initializers.DB.Create(&groupChatUser).Error; err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add member to group chat"})
+			return
+		}
 	}
 
 	// Renvoyer la réponse
@@ -258,4 +292,31 @@ func GroupChatDelete(context *gin.Context) {
 
 	// Renvoyer la réponse de succès
 	context.JSON(http.StatusOK, gin.H{"message": "Group chat deleted successfully"})
+}
+
+func GroupChatGetMessages(c *gin.Context) {
+	groupId := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "40"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	var messages []models.GroupChatMessage
+	result := initializers.DB.Preload("User").Where("group_chat_id = ?", groupId).
+		Order("created_at DESC").Limit(limit).Offset(offset).Find(&messages)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load messages"})
+		return
+	}
+
+	simplifiedMessages := []map[string]interface{}{}
+	for _, msg := range messages {
+		simplifiedMessages = append(simplifiedMessages, map[string]interface{}{
+			"sender_id": msg.UserID,
+			"username":  msg.User.Username,
+			"message":   msg.Message,
+		})
+	}
+
+	fmt.Println("simplified messages")
+
+	c.JSON(http.StatusOK, simplifiedMessages)
 }

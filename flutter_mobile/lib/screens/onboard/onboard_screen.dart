@@ -94,6 +94,8 @@ class _OnboardScreenState extends State<OnboardScreen> {
         _validate = false;
       });
     } else {
+      // Stocker le username dans les shared preferences
+      sharedPrefs.username = data['Username'];
       HomeScreen.navigateTo(context);
     }
   }

@@ -5,7 +5,9 @@ import (
 	"backend/models"
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,15 +16,27 @@ import (
 var DB *gorm.DB
 
 func main() {
+	// Obtenez le répertoire de travail actuel
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error getting current working directory: %v", err)
+	}
+	fmt.Println("Current working directory:", wd)
+
+	// Chargez le fichier .env
+	err = godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		"db",
-		"5432",
-		"root",
-		"password",
-		"root",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"),
 	)
 
-	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("Unable to connect to the database")
@@ -46,7 +60,6 @@ func Load(db *gorm.DB) {
 }
 
 func createUsers(db *gorm.DB) {
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123"), 10)
 	if err != nil {
 		initializers.Logger.Errorln("POST User : Error hashing password")

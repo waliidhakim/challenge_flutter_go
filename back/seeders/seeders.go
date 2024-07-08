@@ -34,7 +34,7 @@ func main() {
 }
 
 func ClearTables(db *gorm.DB) {
-
+	db.Exec("DELETE FROM group_chat_messages")
 	db.Exec("DELETE FROM group_chat_users")
 	db.Exec("DELETE FROM group_chats")
 	db.Exec("DELETE FROM users")

@@ -68,4 +68,22 @@ class GroupChatService {
       return false;
     }
   }
+
+  Future<Map<String, int>> fetchUnreadMessages() async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/unread-messages'),
+      headers: {
+        'Authorization': 'Bearer ${sharedPrefs.token}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      return Map.fromIterable(body,
+          key: (item) => item['group_chat_id'].toString(),
+          value: (item) => item['count']);
+    } else {
+      throw Exception('Failed to load unread messages');
+    }
+  }
 }

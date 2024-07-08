@@ -15,6 +15,7 @@ import (
 )
 
 func GroupChatGet(context *gin.Context) {
+	fmt.Println("get groupchats")
 	var groupChats = services.GetGroupChats(context)
 	context.JSON(http.StatusOK, groupChats)
 
@@ -291,4 +292,31 @@ func GroupChatDelete(context *gin.Context) {
 
 	// Renvoyer la réponse de succès
 	context.JSON(http.StatusOK, gin.H{"message": "Group chat deleted successfully"})
+}
+
+func GroupChatGetMessages(c *gin.Context) {
+	groupId := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "40"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	var messages []models.GroupChatMessage
+	result := initializers.DB.Preload("User").Where("group_chat_id = ?", groupId).
+		Order("created_at DESC").Limit(limit).Offset(offset).Find(&messages)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load messages"})
+		return
+	}
+
+	simplifiedMessages := []map[string]interface{}{}
+	for _, msg := range messages {
+		simplifiedMessages = append(simplifiedMessages, map[string]interface{}{
+			"sender_id": msg.UserID,
+			"username":  msg.User.Username,
+			"message":   msg.Message,
+		})
+	}
+
+	fmt.Println("simplified messages")
+
+	c.JSON(http.StatusOK, simplifiedMessages)
 }

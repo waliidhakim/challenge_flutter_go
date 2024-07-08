@@ -107,8 +107,13 @@ class App extends StatelessWidget {
         GoRoute(
           path: '/groupChat',
           builder: (BuildContext context, GoRouterState state) {
-            final groupId = state.extra as String;
-            return GroupChatScreen(groupId: groupId);
+            final extra = state.extra as Map<String, String>;
+            final groupId = extra['groupId']!;
+            final groupName = extra['groupName']!;
+            return GroupChatScreen(
+              groupId: groupId,
+              groupName: groupName,
+            );
           },
         ),
         GoRoute(

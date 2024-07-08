@@ -8,18 +8,19 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	_ "github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
 
 type Message struct {
+	Type        string `json:"type"`
 	Username    string `json:"username"`
 	Message     string `json:"message"`
 	UserID      uint   `json:"user_id"`
@@ -62,23 +63,50 @@ func handleConnections(c *gin.Context) {
 			break
 		}
 
-		initializers.Logger.Infof("Received message: %v from user: %v in group: %v", msg.Message, msg.UserID, msg.GroupChatID)
+		initializers.Logger.Debugf("Received message: %v from user: %v in group: %v", msg.Message, msg.SenderID, msg.GroupChatID)
+
+		// Handle typing and stop typing events
+		if msg.Type == "typing" || msg.Type == "stop_typing" {
+			broadcast <- msg
+			continue
+		}
+
+		// Retrieve the username from the database
+		var user models.User
+		result := db.First(&user, msg.SenderID)
+		if result.Error != nil {
+			initializers.Logger.Errorf("Error retrieving user: %v", result.Error)
+			continue
+		}
+		msg.Username = user.Username
 
 		// Save the message to the database
+
+		// Conversion de SenderID de string à uint64
+		SenderIDAsUint64, err := strconv.ParseUint(msg.SenderID, 10, 64)
+		if err != nil {
+			fmt.Println("Erreur lors de la conversion de SenderID:", err)
+			return
+		}
+
+		// Conversion de uint64 à uint
+		SenderIDAsUint := uint(SenderIDAsUint64)
+
 		groupChatMessage := models.GroupChatMessage{
 			Message:     msg.Message,
-			UserID:      msg.UserID,
+			UserID:      SenderIDAsUint,
 			GroupChatID: msg.GroupChatID,
 		}
-		result := db.Create(&groupChatMessage)
+		result = db.Create(&groupChatMessage)
 		if result.Error != nil {
 			initializers.Logger.Errorf("Error saving message: %v", result.Error)
 		} else {
 			initializers.Logger.Infoln("Message saved to database")
 		}
 
-		// Add SenderID to the message
-		msg.SenderID = fmt.Sprintf("%d", msg.UserID)
+		// Add SenderID and type to the message
+		//msg.SenderID = fmt.Sprintf("%d", msg.SenderID)
+		msg.Type = "message"
 		broadcast <- msg
 	}
 }
@@ -140,6 +168,9 @@ func main() {
 	router.POST("/group-chat", middlewares.RequireAuth, controllers.GroupChatPost)
 	router.PATCH("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatUpdate)
 	router.DELETE("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatDelete)
+	router.GET("/group-chat/:id/messages", middlewares.RequireAuth, controllers.GroupChatGetMessages)
+
+	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {

@@ -27,26 +27,31 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<GroupChat>> groupChats;
+  late Future<Map<String, int>> unreadMessages;
 
   @override
   void initState() {
     super.initState();
     groupChats = GroupChatService().fetchGroupChats();
+    unreadMessages = GroupChatService().fetchUnreadMessages();
   }
 
   void _showPopupMenu(BuildContext context, GroupChat group) async {
     final RenderBox overlay =
         Overlay.of(context).context.findRenderObject() as RenderBox;
-    final result = await showMenu(
-      context: context,
-      position: RelativeRect.fromRect(
-          Offset.zero & const Size(40, 40), // Arbitrary position
-          Offset.zero & overlay.size),
-      items: [
-        const PopupMenuItem<String>(
-          value: 'details',
-          child: Text('Afficher les détails'),
-        ),
+
+    // Détermine si l'utilisateur actuel est le propriétaire du groupe
+    bool isOwner = group.isUserOwner(sharedPrefs.userId);
+
+    final List<PopupMenuEntry<String>> menuItems = [
+      const PopupMenuItem<String>(
+        value: 'details',
+        child: Text('Afficher les détails'),
+      ),
+    ];
+
+    if (isOwner) {
+      menuItems.addAll([
         const PopupMenuItem<String>(
           value: 'edit',
           child: Text('Modifier'),
@@ -59,7 +64,15 @@ class _HomeScreenState extends State<HomeScreen> {
           value: 'add_members',
           child: Text('Ajouter des membres'),
         ),
-      ],
+      ]);
+    }
+
+    final result = await showMenu(
+      context: context,
+      position: RelativeRect.fromRect(
+          Offset.zero & const Size(40, 40), // Position arbitraire
+          Offset.zero & overlay.size),
+      items: menuItems,
     );
 
     if (result != null) {
@@ -91,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       setState(() {
         groupChats = GroupChatService().fetchGroupChats();
+        unreadMessages = GroupChatService().fetchUnreadMessages();
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,7 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Text(
                     'Token: ${sharedPrefs.token}',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -132,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     DebugPrefsScreen.navigateTo(context);
                   },
-                  child: Text('Debug Shared Preferences'),
+                  child: const Text('Debug Shared Preferences'),
                 ),
               ],
             ),
@@ -152,18 +167,34 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else if (snapshot.hasError) {
                   return Center(child: Text("Erreur: ${snapshot.error}"));
                 }
-                return ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    GroupChat group = snapshot.data![index];
-                    return LongPressListItem(
-                      group: group,
-                      onTap: () {
-                        GroupChatScreen.navigateTo(
-                            context, group.id.toString());
-                      },
-                      onLongPress: (LongPressStartDetails details) async {
-                        _showPopupMenu(context, group);
+                return FutureBuilder<Map<String, int>>(
+                  future: unreadMessages,
+                  builder: (context, unreadSnapshot) {
+                    if (unreadSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (unreadSnapshot.hasError) {
+                      return Center(
+                          child: Text("Erreur: ${unreadSnapshot.error}"));
+                    }
+                    final unreadMessagesMap = unreadSnapshot.data!;
+                    return ListView.builder(
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        GroupChat group = snapshot.data![index];
+                        int unreadCount =
+                            unreadMessagesMap[group.id.toString()] ?? 0;
+                        return LongPressListItem(
+                          group: group,
+                          unreadCount: unreadCount,
+                          onTap: () {
+                            GroupChatScreen.navigateTo(
+                                context, group.id.toString(), group.name);
+                          },
+                          onLongPress: (LongPressStartDetails details) async {
+                            _showPopupMenu(context, group);
+                          },
+                        );
                       },
                     );
                   },

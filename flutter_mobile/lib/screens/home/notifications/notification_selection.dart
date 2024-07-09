@@ -74,7 +74,7 @@ class _NotificationSelectionState extends State<NotificationSelection> {
             ),
             SizedBox(height: 8),
             Text(
-              "Choisissez à partir de combien de participant vous souhaitez être notifié.",
+              "Choisissez à partir de combien de participant vous souhaitez être notifié d'une activité de groupe.",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Slider(

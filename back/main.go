@@ -158,7 +158,13 @@ func main() {
 	router.PATCH("/user/:id", middlewares.RequireAuth, controllers.UserUpdate)
 	router.DELETE("/user/:id", middlewares.RequireAuth, controllers.UserDelete)
 	router.POST("/user/login", controllers.UserLogin)
-	// test image upload
+	// User settings
+	router.GET("/settings", controllers.SettingGet)
+	router.GET("/settings/user/:id", controllers.SettingGetByUserId)
+	router.POST("/settings", controllers.SettingPost)
+	router.PATCH("/settings/:id", controllers.SettingUpdate)
+	router.DELETE("/settings/:id", controllers.SettingDelete)
+	//test image upload
 	router.POST("/user/with-image", controllers.UserPostWithImage)
 	router.POST("/user/register", controllers.UserRegister)
 

@@ -2,9 +2,17 @@ package models
 
 import "gorm.io/gorm"
 
+type NotifyLevel string
+
+const (
+	All     NotifyLevel = "all"
+	Partial NotifyLevel = "partial"
+	None    NotifyLevel = "none"
+)
+
 type Setting struct {
 	gorm.Model
-	NotifyLevel     int
+	NotifyLevel     NotifyLevel
 	NotifyThreshold int
-	User            User
+	UserID          int `gorm:"foreignKey:UserID"`
 }

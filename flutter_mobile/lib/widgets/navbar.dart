@@ -29,10 +29,6 @@ class _NavbarState extends State<Navbar> {
           case 3:
             context.push(SettingsScreen.routeName);
         }
-        setState(() {
-          currentPageIndex = index;
-        });
-
       },
       selectedIndex: currentPageIndex,
       destinations: const <Widget>[

@@ -64,6 +64,7 @@ func SettingUpdate(context *gin.Context) {
 	var body struct {
 		NotifyLevel     models.NotifyLevel
 		NotifyThreshold int
+		UserId          int
 	}
 	err := context.Bind(&body)
 	if err != nil {
@@ -76,7 +77,51 @@ func SettingUpdate(context *gin.Context) {
 	initializers.DB.Model(&setting).Updates(models.Setting{
 		NotifyLevel:     body.NotifyLevel,
 		NotifyThreshold: body.NotifyThreshold,
+		UserID:          body.UserId,
 	})
+	context.JSON(http.StatusOK, setting)
+}
+
+func SettingUserUpdate(context *gin.Context) {
+	userId, userErr := context.Get("userId")
+	if !utils.IsAdminOrAccountOwner(context, userId) {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	if userErr != true {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	}
+	var body struct {
+		NotifyLevel     models.NotifyLevel
+		NotifyThreshold int
+	}
+	err := context.Bind(&body)
+	if err != nil {
+		initializers.Logger.Errorln("PATCH Setting : Error binding body data to struct")
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+	var setting models.Setting
+	// first item with user_id = userId
+	initializers.DB.First(&setting, "user_id = ?", userId)
+	initializers.DB.Model(&setting).Updates(models.Setting{
+		NotifyLevel:     body.NotifyLevel,
+		NotifyThreshold: body.NotifyThreshold,
+	})
+	context.JSON(http.StatusOK, setting)
+}
+
+func SettingGetUser(context *gin.Context) {
+	userId, userErr := context.Get("userId")
+	if !utils.IsAdminOrAccountOwner(context, userId) {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	if userErr != true {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	}
+	var setting models.Setting
+	initializers.DB.First(&setting, "user_id = ?", userId)
 	context.JSON(http.StatusOK, setting)
 }
 

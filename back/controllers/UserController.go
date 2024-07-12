@@ -283,6 +283,16 @@ func UserRegister(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
-
+	// Create Settings for the user
+	setting := models.Setting{
+		UserID:          int(user.ID),
+		NotifyLevel:     models.All,
+		NotifyThreshold: 5,
+	}
+	if err := initializers.DB.Create(&setting).Error; err != nil {
+		log.Println("Database error:", err)
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user settings"})
+		return
+	}
 	context.JSON(http.StatusCreated, gin.H{"user": user})
 }

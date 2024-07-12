@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/models/settings.dart';
 import 'package:flutter_mobile/screens/home/notifications/notification_selection.dart';
+import 'package:flutter_mobile/services/settings_service.dart';
 import 'package:flutter_mobile/widgets/navbar.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +12,10 @@ class SettingsScreen extends StatelessWidget {
 
   static Future<void> navigateTo(BuildContext context) {
     return context.push(routeName);
+  }
+
+  handleChange(Setting settings) {
+    SettingsService().updateSettings(settings);
   }
 
   @override
@@ -29,7 +35,9 @@ class SettingsScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SizedBox(height: 16),
-              const NotificationSelection(),
+              NotificationSelection(
+                onChange: handleChange,
+              ),
             ],
           ),
         ),

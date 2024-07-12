@@ -12,7 +12,15 @@ func init() {
 }
 
 func main() {
-	err := initializers.DB.AutoMigrate(&models.User{}, &models.GroupChat{}, &models.GroupChatUser{}, &models.GroupChatMessage{}, &models.GroupChatMessageRead{})
+	err := initializers.DB.AutoMigrate(
+		&models.User{},
+		&models.GroupChat{},
+		&models.GroupChatUser{},
+		&models.GroupChatMessage{},
+		&models.GroupChatMessageRead{},
+		&models.Setting{},
+		&models.GroupChatActivityParticipation{},
+	)
 	if err != nil {
 		initializers.Logger.Errorln("Error while migrating User")
 	} else {

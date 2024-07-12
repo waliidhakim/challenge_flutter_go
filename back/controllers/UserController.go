@@ -283,6 +283,34 @@ func UserRegister(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
-
+	// Create Settings for the user
+	setting := models.Setting{
+		UserID:          int(user.ID),
+		NotifyLevel:     models.All,
+		NotifyThreshold: 5,
+	}
+	if err := initializers.DB.Create(&setting).Error; err != nil {
+		log.Println("Database error:", err)
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user settings"})
+		return
+	}
 	context.JSON(http.StatusCreated, gin.H{"user": user})
+}
+
+func UserGetGroupChatActivityParticipations(context *gin.Context) {
+	id := context.Param("id")
+
+	var user models.User
+	if err := initializers.DB.First(&user, id).Error; err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	participations, err := user.GetGroupChatActivityParticipations(initializers.DB)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get participations"})
+		return
+	}
+
+	context.JSON(http.StatusOK, participations)
 }

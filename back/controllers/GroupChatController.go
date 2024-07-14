@@ -22,63 +22,7 @@ func GroupChatGet(context *gin.Context) {
 
 }
 
-// func GroupChatGetById(context *gin.Context) {
-// 	grouChatId := context.Param("id")
-// 	userId, exists := context.Get("userId")
-// 	if !exists {
-// 		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
-// 		return
-// 	}
 
-// 	userID, ok := userId.(uint)
-// 	if !ok {
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type uint"})
-// 		return
-// 	}
-
-// 	var groupChatUser models.GroupChatUser
-// 	result := initializers.DB.Where("group_chat_id = ? AND user_id = ?", grouChatId, userID).First(&groupChatUser)
-// 	if result.Error != nil {
-// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-// 			context.JSON(http.StatusForbidden, gin.H{"error": "Access to the specified group chat is forbidden or group chat does not exist"})
-// 			return
-// 		}
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-// 		return
-// 	}
-
-// 	var groupChat models.GroupChat
-// 	result = initializers.DB.Preload("Users").First(&groupChat, grouChatId)
-// 	if result.Error != nil {
-// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-// 			context.JSON(http.StatusNotFound, gin.H{"error": "Group chat not found"})
-// 			return
-// 		}
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat"})
-// 		return
-// 	}
-
-// 	// Retrieve owner information
-// 	// var owner models.User
-// 	// result = initializers.DB.Joins("JOIN group_chat_users ON users.id = group_chat_users.user_id").
-// 	// 	Where("group_chat_users.group_chat_id = ? AND group_chat_users.role = ?", grouChatId, "owner").
-// 	// 	First(&owner)
-// 	// if result.Error != nil {
-// 	// 	context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat owner"})
-// 	// 	return
-// 	// }
-
-// 	// Prepare response
-// 	response := struct {
-// 		models.GroupChat
-// 		// Owner models.User `json:"owner"`
-// 	}{
-// 		GroupChat: groupChat,
-// 		// Owner:     owner,
-// 	}
-
-// 	context.JSON(http.StatusOK, response)
-// }
 
 func GroupChatPost(context *gin.Context) {
 	var body struct {

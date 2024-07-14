@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobile/screens/debug/debud_prefs_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
+import 'package:flutter_mobile/screens/groupe_chat/edit_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
 import 'package:flutter_mobile/widgets/long_press_item.dart';
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Overlay.of(context).context.findRenderObject() as RenderBox;
 
     // Détermine si l'utilisateur actuel est le propriétaire du groupe
+    print('Checking ownership for user ID: ${sharedPrefs.userId}');
     bool isOwner = group.isUserOwner(sharedPrefs.userId);
 
     final List<PopupMenuEntry<String>> menuItems = [
@@ -81,7 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
           GroupChatDetailScreen.navigateTo(context, group.id.toString());
           break;
         case 'edit':
-          // Navigate to edit screen (to be implemented)
+          EditGroupChatScreen.navigateTo(context, group.id.toString(),
+              group.name, group.activity, group.catchPhrase, group.imageUrl);
           break;
         case 'delete':
           _deleteGroupChat(context, group.id);

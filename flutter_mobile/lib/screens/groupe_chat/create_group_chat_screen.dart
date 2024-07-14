@@ -94,7 +94,7 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Créer un nouveau groupe")),
-      body: Container(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,

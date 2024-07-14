@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -57,6 +58,7 @@ func ClearTables(db *gorm.DB) {
 func Load(db *gorm.DB) {
 	createUsers(db)
 	createGroupChats(db)
+	createGroupChatActivityParticipations(db)
 }
 
 func createUsers(db *gorm.DB) {
@@ -106,4 +108,43 @@ func createGroupChats(db *gorm.DB) {
 			log.Fatalf("could not create group chat: %v", err)
 		}
 	}
+}
+
+func createGroupChatActivityParticipations(db *gorm.DB) {
+	var groupOwner models.User
+	db.Where("phone = ?", "111").First(&groupOwner)
+
+	var user1 models.User
+	db.Where("phone = ?", "222").First(&user1)
+
+	var group1 models.GroupChat
+	db.Where("name= ?", "Group 1 Test").First(&group1)
+
+	now := time.Now()
+	todayAt18h := time.Date(
+		now.Year(), now.Month(), now.Day(),
+		18, 0, 0, 0, now.Location(),
+	)
+
+	groupChatActivityParticipations := []models.GroupChatActivityParticipation{
+
+		{
+			UserID:            groupOwner.ID,
+			GroupChatID:       group1.ID,
+			ParticipationDate: todayAt18h,
+		},
+
+		{
+			UserID:            user1.ID,
+			GroupChatID:       group1.ID,
+			ParticipationDate: todayAt18h,
+		},
+	}
+
+	for _, groupChatActivityParticipation := range groupChatActivityParticipations {
+		if err := db.Create(&groupChatActivityParticipation).Error; err != nil {
+			log.Fatalf("could not create group chat activity participation: %v", err)
+		}
+	}
+
 }

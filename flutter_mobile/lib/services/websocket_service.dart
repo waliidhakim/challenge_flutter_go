@@ -62,6 +62,9 @@ class WebSocketService {
       'group_chat_id': int.parse(groupId),
       'username': username,
       'message': message,
+      'created_at': DateTime.now()
+          .toUtc()
+          .toIso8601String(), // Ajouter l'heure de création au format UTC
     };
     _channel.sink.add(jsonEncode(chatMessage));
   }

@@ -1,21 +1,18 @@
+import 'package:flutter_mobile/models/user_model.dart';
+import 'package:flutter_mobile/models/user_model.dart';
+
 class GroupChatUser {
   final int id;
-  final int groupChatId;
-  final int userId;
+  final User user;
   final String role;
 
-  GroupChatUser({
-    required this.id,
-    required this.groupChatId,
-    required this.userId,
-    required this.role,
-  });
+  GroupChatUser({required this.id, required this.user, required this.role});
 
   factory GroupChatUser.fromJson(Map<String, dynamic> json) {
+    print("GroupChatUser JSON: $json");
     return GroupChatUser(
       id: json['ID'],
-      groupChatId: json['GroupChatID'],
-      userId: json['UserID'],
+      user: User.fromJson(json['User']),
       role: json['Role'],
     );
   }
@@ -43,6 +40,7 @@ class GroupChat {
   });
 
   factory GroupChat.fromJson(Map<String, dynamic> json) {
+    print("GroupChat JSON: $json");
     return GroupChat(
       id: json['ID'],
       name: json['Name'],
@@ -56,7 +54,13 @@ class GroupChat {
   }
 
   bool isUserOwner(String userId) {
-    return users.any(
-        (user) => user.userId.toString() == userId && user.role == 'owner');
+    final int parsedUserId = int.parse(userId);
+    for (var user in users) {
+      print('User ID: ${user.user.id}, Role: ${user.role}');
+      if (user.user.id == parsedUserId && user.role == 'owner') {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -22,63 +22,63 @@ func GroupChatGet(context *gin.Context) {
 
 }
 
-func GroupChatGetById(context *gin.Context) {
-	grouChatId := context.Param("id")
-	userId, exists := context.Get("userId")
-	if !exists {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
-		return
-	}
+// func GroupChatGetById(context *gin.Context) {
+// 	grouChatId := context.Param("id")
+// 	userId, exists := context.Get("userId")
+// 	if !exists {
+// 		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
+// 		return
+// 	}
 
-	userID, ok := userId.(uint)
-	if !ok {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type uint"})
-		return
-	}
+// 	userID, ok := userId.(uint)
+// 	if !ok {
+// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type uint"})
+// 		return
+// 	}
 
-	var groupChatUser models.GroupChatUser
-	result := initializers.DB.Where("group_chat_id = ? AND user_id = ?", grouChatId, userID).First(&groupChatUser)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			context.JSON(http.StatusForbidden, gin.H{"error": "Access to the specified group chat is forbidden or group chat does not exist"})
-			return
-		}
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
+// 	var groupChatUser models.GroupChatUser
+// 	result := initializers.DB.Where("group_chat_id = ? AND user_id = ?", grouChatId, userID).First(&groupChatUser)
+// 	if result.Error != nil {
+// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+// 			context.JSON(http.StatusForbidden, gin.H{"error": "Access to the specified group chat is forbidden or group chat does not exist"})
+// 			return
+// 		}
+// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// 		return
+// 	}
 
-	var groupChat models.GroupChat
-	result = initializers.DB.Preload("Users").First(&groupChat, grouChatId)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			context.JSON(http.StatusNotFound, gin.H{"error": "Group chat not found"})
-			return
-		}
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat"})
-		return
-	}
+// 	var groupChat models.GroupChat
+// 	result = initializers.DB.Preload("Users").First(&groupChat, grouChatId)
+// 	if result.Error != nil {
+// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+// 			context.JSON(http.StatusNotFound, gin.H{"error": "Group chat not found"})
+// 			return
+// 		}
+// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat"})
+// 		return
+// 	}
 
-	// Retrieve owner information
-	var owner models.User
-	result = initializers.DB.Joins("JOIN group_chat_users ON users.id = group_chat_users.user_id").
-		Where("group_chat_users.group_chat_id = ? AND group_chat_users.role = ?", grouChatId, "owner").
-		First(&owner)
-	if result.Error != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat owner"})
-		return
-	}
+// 	// Retrieve owner information
+// 	// var owner models.User
+// 	// result = initializers.DB.Joins("JOIN group_chat_users ON users.id = group_chat_users.user_id").
+// 	// 	Where("group_chat_users.group_chat_id = ? AND group_chat_users.role = ?", grouChatId, "owner").
+// 	// 	First(&owner)
+// 	// if result.Error != nil {
+// 	// 	context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat owner"})
+// 	// 	return
+// 	// }
 
-	// Prepare response
-	response := struct {
-		models.GroupChat
-		Owner models.User `json:"owner"`
-	}{
-		GroupChat: groupChat,
-		Owner:     owner,
-	}
+// 	// Prepare response
+// 	response := struct {
+// 		models.GroupChat
+// 		// Owner models.User `json:"owner"`
+// 	}{
+// 		GroupChat: groupChat,
+// 		// Owner:     owner,
+// 	}
 
-	context.JSON(http.StatusOK, response)
-}
+// 	context.JSON(http.StatusOK, response)
+// }
 
 func GroupChatPost(context *gin.Context) {
 	var body struct {
@@ -323,79 +323,6 @@ func GroupChatGetMessages(c *gin.Context) {
 	c.JSON(http.StatusOK, simplifiedMessages)
 }
 
-// func GroupChatUpdateInfos(context *gin.Context) {
-// 	grouChatId := context.Param("id")
-
-// 	userId, exists := context.Get("userId")
-// 	if !exists {
-// 		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
-// 		return
-// 	}
-
-// 	// Assurez-vous que userId est du bon type, ici on suppose que c'est un uint
-// 	userID, ok := userId.(uint)
-// 	if !ok {
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type uint"})
-// 		return
-// 	}
-
-// 	// Structure pour les données entrantes
-// 	var updateData struct {
-// 		Name        string `form:"name"`
-// 		Activity    string `form:"activity"`
-// 		CatchPhrase string `form:"catchPhrase"`
-// 	}
-// 	if err := context.Bind(&updateData); err != nil {
-// 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
-// 		return
-// 	}
-
-// 	// Vérifier si l'utilisateur est le propriétaire du GroupChat
-// 	var groupChatUser models.GroupChatUser
-// 	result := initializers.DB.Where("group_chat_id = ? AND user_id = ? AND role = ?", grouChatId, userID, "owner").First(&groupChatUser)
-// 	if result.Error != nil {
-// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-// 			context.JSON(http.StatusForbidden, gin.H{"error": "You are not the owner of this group chat"})
-// 			return
-// 		}
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-// 		return
-// 	}
-
-// 	// Mise à jour du GroupChat
-// 	var groupChat models.GroupChat
-// 	update := initializers.DB.Model(&groupChat).Where("id = ?", grouChatId).Updates(models.GroupChat{
-// 		Name:        updateData.Name,
-// 		Activity:    updateData.Activity,
-// 		CatchPhrase: updateData.CatchPhrase,
-// 	})
-// 	if update.Error != nil {
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update group chat"})
-// 		return
-// 	}
-
-// 	// Réception du fichier
-// 	file, err := context.FormFile("image")
-// 	if err == nil {
-// 		imageUrl, err := utils.UploadImageToS3(*file, "group-chats")
-// 		if err != nil {
-// 			context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload image"})
-// 			return
-// 		}
-// 		update = initializers.DB.Model(&groupChat).Where("id = ?", grouChatId).Update("image_url", imageUrl)
-// 		if update.Error != nil {
-// 			context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update image URL"})
-// 			return
-// 		}
-// 	}
-
-// 	if update.RowsAffected == 0 {
-// 		context.JSON(http.StatusNotFound, gin.H{"error": "No group chat found with the given ID"})
-// 		return
-// 	}
-// 	context.JSON(http.StatusOK, gin.H{"message": "Group chat updated successfully"})
-// }
-
 func GroupChatUpdateInfos(context *gin.Context) {
 	grouChatId := context.Param("id")
 
@@ -462,4 +389,50 @@ func GroupChatUpdateInfos(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, gin.H{"message": "Group chat updated successfully"})
+}
+
+func GroupChatGetById(context *gin.Context) {
+	groupChatId := context.Param("id")
+	userId, exists := context.Get("userId")
+	if !exists {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
+		return
+	}
+
+	userID, ok := userId.(uint)
+	if !ok {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type uint"})
+		return
+	}
+
+	var groupChatUser models.GroupChatUser
+	result := initializers.DB.Where("group_chat_id = ? AND user_id = ?", groupChatId, userID).First(&groupChatUser)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			context.JSON(http.StatusForbidden, gin.H{"error": "Access to the specified group chat is forbidden or group chat does not exist"})
+			return
+		}
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	var groupChat models.GroupChat
+	result = initializers.DB.Preload("Users.User").First(&groupChat, groupChatId)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			context.JSON(http.StatusNotFound, gin.H{"error": "Group chat not found"})
+			return
+		}
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat"})
+		return
+	}
+
+	// Prepare response
+	response := struct {
+		models.GroupChat
+	}{
+		GroupChat: groupChat,
+	}
+
+	context.JSON(http.StatusOK, response)
 }

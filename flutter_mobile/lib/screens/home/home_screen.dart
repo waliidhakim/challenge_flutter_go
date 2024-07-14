@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Overlay.of(context).context.findRenderObject() as RenderBox;
 
     // Détermine si l'utilisateur actuel est le propriétaire du groupe
+    print('Checking ownership for user ID: ${sharedPrefs.userId}');
     bool isOwner = group.isUserOwner(sharedPrefs.userId);
 
     final List<PopupMenuEntry<String>> menuItems = [

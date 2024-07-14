@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobile/services/groupe_chat_service.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
@@ -130,7 +129,7 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Group Chat')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,

@@ -1,0 +1,44 @@
+name: Deploy Backend to AWS
+
+on:
+  push:
+    branches:
+      - main
+  paths:
+    - 'back/**'       # Déclencher seulement pour les changements dans le dossier backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16
+
+    - name: Build
+      run: |
+        cd backend
+        go build -o app ./src
+
+    - name: Archive application
+      run: |
+        cd backend
+        tar -czf app.tar.gz app
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 0.14.5
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: backend/terraform
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: backend/terraform

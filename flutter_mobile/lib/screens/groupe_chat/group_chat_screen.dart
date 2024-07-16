@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
+import 'package:flutter_mobile/widgets/activity/activity_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 
@@ -138,7 +139,15 @@ class GroupChatScreenState extends State<GroupChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.groupName)),
+      appBar: AppBar(
+        title: Text(widget.groupName),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
           if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
@@ -236,6 +245,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                 ),
               ],
             ),
+            const ActivityBar(),
           ],
         ),
       ),

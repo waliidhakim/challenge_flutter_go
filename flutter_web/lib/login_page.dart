@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       var response = await http.post(
-        Uri.http('localhost:4000', '/user/login'),
+        Uri.http('localhost:4000', '/user/admin/login'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -47,6 +47,10 @@ class _LoginPageState extends State<LoginPage> {
             "Authorization=${responseData['token']};path=/;max-age=3600;SameSite=None";
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => HomePage()));
+      } else if (response.statusCode == 401) {
+        setState(() {
+          _errorMessage = "Vous n'avez pas le droit d'accéder à cette section.";
+        });
       } else {
         throw Exception('Failed to log in with status: ${response.statusCode}');
       }
@@ -54,6 +58,10 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = false;
         _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }

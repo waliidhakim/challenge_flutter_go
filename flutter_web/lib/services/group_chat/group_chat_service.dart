@@ -33,4 +33,39 @@ class GroupChatService {
   }
 
   // Ajoutez d'autres méthodes CRUD ici si nécessaire
+
+  static Future<Map<String, dynamic>> fetchGroupChatDetails(int id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
+    final response = await http.get(
+      Uri.parse('http://localhost:4000/group-chat/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $token"
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load group chat details');
+    }
+  }
+
+  static Future<void> updateGroupChat(int id, Map<String, dynamic> data) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
+    final response = await http.patch(
+      Uri.parse('http://localhost:4000/group-chat/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $token"
+      },
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update group chat');
+    }
+  }
 }

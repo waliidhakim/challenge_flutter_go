@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_web/models/users.dart';
 import 'package:flutter_web/services/users/user_service.dart';
-import 'package:flutter_web/widgets/dialog/create_user_dialog.dart';
-import 'package:flutter_web/widgets/dialog/delete_user_dialog.dart';
-import 'package:flutter_web/widgets/dialog/update_user_dialog.dart';
-import 'package:flutter_web/widgets/dialog/user_details_dialog.dart';
+import 'package:flutter_web/widgets/dialog/users/create_user_dialog.dart';
+import 'package:flutter_web/widgets/dialog/users/delete_user_dialog.dart';
+import 'package:flutter_web/widgets/dialog/users/update_user_dialog.dart';
+import 'package:flutter_web/widgets/dialog/users/user_details_dialog.dart';
 
 class UserCrudPage extends StatefulWidget {
   const UserCrudPage({Key? key}) : super(key: key);
@@ -16,6 +16,8 @@ class UserCrudPage extends StatefulWidget {
 
 class _UserCrudPageState extends State<UserCrudPage> {
   List<User> _users = [];
+  int _currentPage = 1;
+  final int _limit = 3;
 
   @override
   void initState() {
@@ -25,10 +27,29 @@ class _UserCrudPageState extends State<UserCrudPage> {
 
   Future<void> _loadUsers() async {
     try {
-      _users = await UserService.fetchUsers();
+      _users = await UserService.fetchUsers(page: _currentPage, limit: _limit);
       setState(() {});
     } catch (e) {
       // Gérer l'erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load users: $e')),
+      );
+    }
+  }
+
+  void _nextPage() {
+    setState(() {
+      _currentPage++;
+    });
+    _loadUsers();
+  }
+
+  void _previousPage() {
+    if (_currentPage > 1) {
+      setState(() {
+        _currentPage--;
+      });
+      _loadUsers();
     }
   }
 
@@ -85,6 +106,20 @@ class _UserCrudPageState extends State<UserCrudPage> {
                 rows: _users.map((user) => _buildRow(user)).toList(),
               ),
             ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: _previousPage,
+                child: Text('Previous'),
+              ),
+              SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: _nextPage,
+                child: Text('Next'),
+              ),
+            ],
           ),
         ],
       ),

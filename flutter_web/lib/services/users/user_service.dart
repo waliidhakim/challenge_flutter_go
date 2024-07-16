@@ -5,15 +5,26 @@ import 'package:flutter_web/models/users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  static Future<List<User>> fetchUsers() async {
+  static Future<List<User>> fetchUsers({int page = 1, int limit = 3}) async {
     String? apiUrl = dotenv.env['API_URL'];
-    final response = await http.get(Uri.parse("$apiUrl/user"));
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
+    if (token != null && token.startsWith('"') && token.endsWith('"')) {
+      token = token.substring(1, token.length - 1); // Supprime les guillemets
+    }
+
+    final response = await http.get(
+      Uri.parse('${apiUrl}/user?page=$page&limit=$limit'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $token"
+      },
+    );
 
     if (response.statusCode == 200) {
-      List<User> users = (json.decode(response.body) as List)
-          .map((data) => User.fromJson(data))
-          .toList();
-      return users;
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => User.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load users');
     }
@@ -102,10 +113,17 @@ class UserService {
     String phone,
   ) async {
     String? apiUrl = dotenv.env['API_URL'];
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
+    if (token != null && token.startsWith('"') && token.endsWith('"')) {
+      token = token.substring(1, token.length - 1); // Supprime les guillemets
+    }
     final response = await http.patch(
       Uri.parse('$apiUrl/user/$id'),
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': "Bearer $token"
       },
       body: jsonEncode({
         'Firstname': firstname,

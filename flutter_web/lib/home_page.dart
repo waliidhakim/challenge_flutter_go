@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Accueil',
           style: TextStyle(
               color: Colors.white,
@@ -21,7 +21,7 @@ class HomePage extends StatelessWidget {
         backgroundColor:
             Colors.lightBlue[100], // Couleur de fond de la barre de navigation
         elevation: 4.0,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(10), // Bordure arrondie pour l'appBar
           ),
@@ -79,10 +79,31 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: const Center(
-        child: Text(
-          'Bienvenue sur la page d\'accueil',
-          style: TextStyle(fontSize: 20), // Style ajouté pour agrandir le texte
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Bienvenue sur la page d\'accueil',
+              style: TextStyle(
+                  fontSize: 20), // Style ajouté pour agrandir le texte
+            ),
+            const SizedBox(
+                height: 20), // Ajoute un espace entre le texte et les icônes
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.home, size: 250, color: Colors.lightBlue),
+                const SizedBox(
+                    width: 20), // Ajoute un espace entre les deux icônes
+                Image.asset(
+                  'assets/images/icons8-engrenage-64.png',
+                  width: 250,
+                  height: 250,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

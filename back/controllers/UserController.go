@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,16 @@ import (
 
 func UserGet(context *gin.Context) {
 	var users []models.User
-	initializers.DB.Find(&users)
+
+	// Récupérer les paramètres de pagination de la requête
+	page, _ := strconv.Atoi(context.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(context.DefaultQuery("limit", "3"))
+	offset := (page - 1) * limit
+
+	// Récupérer les utilisateurs avec pagination
+	initializers.DB.Limit(limit).Offset(offset).Find(&users)
+
+	// Renvoyer les utilisateurs avec le statut HTTP 200
 	context.JSON(http.StatusOK, users)
 }
 
@@ -313,4 +323,68 @@ func UserGetGroupChatActivityParticipations(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, participations)
+}
+
+func AdminLogin(context *gin.Context) {
+	var body struct {
+		Phone    string
+		Password string
+	}
+	bindErr := context.Bind(&body)
+	if bindErr != nil {
+		initializers.Logger.Errorln("POST User : Error binding body data to struct")
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+	var user models.User
+	initializers.DB.First(&user, "phone = ?", body.Phone)
+
+	if user.ID == 0 {
+		// Phone is unknown in that case but to avoid information disclosure we send a vague message
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "Wrong phone or password",
+		})
+		return
+	}
+
+	bcryptErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
+	if bcryptErr != nil {
+		// User is found but password is wrong, to avoid information disclosure we send a vague message
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "Wrong phone or password",
+		})
+		return
+	}
+
+	if user.Role != "admin" {
+		context.JSON(http.StatusUnauthorized, gin.H{
+			"error": "You don't have permission to access this page",
+		})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 6).Unix(),
+	})
+
+	tokenString, jwtErr := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if jwtErr != nil {
+		initializers.Logger.Errorln("JWT Error when signing token", jwtErr)
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal server error",
+		})
+		return
+	}
+
+	context.SetSameSite(http.SameSiteLaxMode)
+	// @todo change "secure" to true when on production
+	context.SetCookie("Authorization", tokenString, 3600*6, "", "", false, true)
+	context.JSON(http.StatusOK, gin.H{
+		"token":      tokenString,
+		"onboarding": user.Onboarding, // Ajouter cette ligne pour inclure le statut d'onboarding
+		"userId":     user.ID,         // Ajouter cette ligne pour inclure l'ID utilisateur
+		"username":   user.Username,
+		"role":       user.Role,
+	})
 }

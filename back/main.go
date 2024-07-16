@@ -21,6 +21,7 @@ func init() {
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
+	controllers.InitFirebase()
 }
 
 func main() {
@@ -43,11 +44,12 @@ func main() {
 
 	// USER Routes
 	router.POST("/user", controllers.UserPost)
-	router.GET("/user", controllers.UserGet)
+	router.GET("/user", middlewares.RequireAuth, controllers.UserGet)
 	router.GET("/user/:id", controllers.UserGetById)
 	router.PATCH("/user/:id", middlewares.RequireAuth, controllers.UserUpdate)
 	router.DELETE("/user/:id", middlewares.RequireAuth, controllers.UserDelete)
 	router.POST("/user/login", controllers.UserLogin)
+	router.POST("/user/admin/login", controllers.AdminLogin)
 	router.GET("/users/:id/group_chat_activity_participations", middlewares.RequireAuth, controllers.UserGetGroupChatActivityParticipations)
 	// User settings
 	router.GET("/settings", middlewares.RequireAuth, controllers.SettingGet)
@@ -71,6 +73,8 @@ func main() {
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
+    router.POST("/send-notification", controllers.SendNotification)
+    
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)

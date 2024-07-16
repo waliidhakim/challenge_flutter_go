@@ -18,8 +18,8 @@ func main() {
 		&models.GroupChatUser{},
 		&models.GroupChatMessage{},
 		&models.GroupChatMessageRead{},
-		&models.Setting{},
 		&models.GroupChatActivityParticipation{},
+		&models.Setting{},
 	)
 	if err != nil {
 		initializers.Logger.Errorln("Error while migrating User")

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/services/activity_service.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
 import 'package:flutter_mobile/widgets/activity/activity_bar.dart';
@@ -31,6 +32,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
   late WebSocketService webSocketService;
   final String userId = sharedPrefs.userId;
   final String username = sharedPrefs.username;
+  int _nbParticipants = 0;
   int offset = 0;
   final int limit = 40;
   bool isLoading = false;
@@ -43,6 +45,12 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     super.initState();
     _controller = TextEditingController();
     _controller.addListener(_onTyping);
+
+    ActivityService().fetchGroupChatActivities(widget.groupId).then((activities) {
+      setState(() {
+        _nbParticipants = activities.length;
+      });
+    });
 
     webSocketService = WebSocketService(
       userId: userId,
@@ -59,6 +67,11 @@ class GroupChatScreenState extends State<GroupChatScreen> {
         } else if (message["type"] == "stop_typing" &&
             message["sender_id"].toString() != userId) {
           isTyping.value = false;
+        } else if (message["type"] == "group_participants" && message['group_chat_id'] == int.parse(widget.groupId)) {
+          print("group_participants: ${message['nb_participants']}");
+          setState(() {
+            _nbParticipants = message['nb_participants'];
+          });
         }
       },
       onTypingStatusChanged: (typing) {
@@ -245,7 +258,11 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                 ),
               ],
             ),
-            const ActivityBar(),
+            ActivityBar(
+              groupId: widget.groupId,
+              websocketService: webSocketService,
+              nbParticipants: _nbParticipants,
+            ),
           ],
         ),
       ),

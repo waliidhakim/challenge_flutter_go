@@ -1,16 +1,13 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
+	"time"
 )
 
 type GroupChatActivityParticipation struct {
 	gorm.Model
-	// User              User
-	UserID uint `gorm:"foreignKey:UserID"`
-	// GroupChat         GroupChat
-	GroupChatID       uint `gorm:"foreignKey:GroupChatID"`
+	UserID            uint `gorm:"foreignKey:UserID"`
+	GroupChatID       int  `gorm:"foreignKey:GroupChatID"`
 	ParticipationDate time.Time
 }

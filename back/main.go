@@ -94,6 +94,42 @@ func main() {
 	router.PATCH("/features/:id", middlewares.RequireAuth, controllers.FeatureUpdate)
 	router.DELETE("/features/:id", middlewares.RequireAuth, controllers.FeatureDelete)
 
+	// router.POST("/send-notification", controllers.SendNotification)
+
+	// Feature Flipping fonctionnalité
+	// Feature Management Routes
+	router.GET("/features", middlewares.RequireAuth, controllers.FeaturesList)
+	router.POST("/features", middlewares.RequireAuth, controllers.FeatureCreate)
+	router.GET("/features/:id", middlewares.RequireAuth, controllers.FeatureGet)
+	router.PATCH("/features/:id", middlewares.RequireAuth, controllers.FeatureUpdate)
+	router.DELETE("/features/:id", middlewares.RequireAuth, controllers.FeatureDelete)
+
+	// GroupChatActivity Routes
+	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)
+	router.GET("/group-chat-activity/:id", middlewares.RequireAuth, controllers.ActivityParticipationGetById)
+	router.GET("/group-chat-activity/group-chat/:group_chat_id", middlewares.RequireAuth, controllers.ActivityParticipationGetByGroupChatID)
+	router.GET("/group-chat-activity/user/:user_id", middlewares.RequireAuth, controllers.ActivityParticipationGetByUserID)
+	router.POST("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationPost)
+	router.PATCH("/group-chat-activity/:id", middlewares.RequireAuth, controllers.ActivityParticipationPatch)
+	router.DELETE("/group-chat-activity/:id", middlewares.RequireAuth, controllers.ActivityParticipationDelete)
+	router.GET("/group-chat-activity/group-chat/:group_chat_id/today-participation", middlewares.RequireAuth, controllers.ActivityParticipationGetByGroupChatIDAndIsToday)
+	router.GET("/group-chat-activity/user/:user_id/group-chat/:group_chat_id", middlewares.RequireAuth, controllers.ActivityParticipationGetByGroupChatIDAndUserID)
+	router.GET("/group-chat-activity/group-chat/:group_chat_id/my-today-participation", middlewares.RequireAuth, controllers.ActivityParticipationGetByGroupChatIDAndUserIDAndIsToday)
+
+	// GroupChatActivityLocation Routes
+	router.GET("/group-chat-activity-location", middlewares.RequireAuth, controllers.ActivityLocationGet)
+	router.GET("/group-chat-activity-location/group-chat/:group_chat_id", middlewares.RequireAuth, controllers.ActivityLocationGetByGroupChatID)
+	router.POST("/group-chat-activity-location", middlewares.RequireAuth, controllers.ActivityLocationCreate)
+	router.DELETE("/group-chat-activity-location/:id", middlewares.RequireAuth, controllers.ActivityLocationDelete)
+
+	// GroupChatActivityLocationVote Routes
+	router.GET("/group-chat-activity-location-vote", middlewares.RequireAuth, controllers.ActivityLocationVoteGet)
+	router.GET("/group-chat-activity-location-vote/group-chat/:group_chat_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteGetByGroupIdToday)
+	router.GET("/group-chat-activity-location-vote/location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteGetByLocationIdToday)
+	router.POST("/group-chat-activity-location-vote", middlewares.RequireAuth, controllers.ActivityLocationVoteCreate)
+	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
+	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
+	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)

@@ -141,7 +141,7 @@ class _ActivityBarState extends State<ActivityBar> {
                 Container(
                   height: 125,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).colorScheme.outline),
+                    border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -203,7 +203,7 @@ class _ActivityBarState extends State<ActivityBar> {
                         }
                         return Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).colorScheme.outline),
+                            border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -287,7 +287,7 @@ class _ActivityBarState extends State<ActivityBar> {
           )
         : Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.outline),
+              border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
               color: Colors.white,
               borderRadius: BorderRadius.circular(4),
             ),

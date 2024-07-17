@@ -1,7 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/models/group_chat.dart';
+import 'package:flutter_mobile/models/location_vote.dart';
+import 'package:flutter_mobile/services/activity_service.dart';
+import 'package:flutter_mobile/services/groupe_chat_service.dart';
+import 'package:flutter_mobile/services/location_vote_service.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
+import 'package:flutter_mobile/widgets/activity/activity_bar.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 
@@ -30,10 +36,13 @@ class GroupChatScreenState extends State<GroupChatScreen> {
   late WebSocketService webSocketService;
   final String userId = sharedPrefs.userId;
   final String username = sharedPrefs.username;
+  int _nbParticipants = 0;
   int offset = 0;
   final int limit = 40;
   bool isLoading = false;
   ValueNotifier<bool> isTyping = ValueNotifier(false);
+  late Future<GroupChat> groupChatInfo;
+  late ValueNotifier<List<LocationVote>> groupVotes = ValueNotifier([]);
 
   String _lastText = "";
 
@@ -42,6 +51,16 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     super.initState();
     _controller = TextEditingController();
     _controller.addListener(_onTyping);
+
+    ActivityService()
+        .fetchGroupChatActivities(widget.groupId)
+        .then((activities) {
+      setState(() {
+        _nbParticipants = activities.length;
+      });
+    });
+
+    groupChatInfo = GroupChatService().fetchGroupChatById(widget.groupId);
 
     webSocketService = WebSocketService(
       userId: userId,
@@ -58,6 +77,17 @@ class GroupChatScreenState extends State<GroupChatScreen> {
         } else if (message["type"] == "stop_typing" &&
             message["sender_id"].toString() != userId) {
           isTyping.value = false;
+        } else if (message["type"] == "group_participants" &&
+            message['group_chat_id'] == int.parse(widget.groupId)) {
+          setState(() {
+            _nbParticipants = message['nb_participants'];
+          });
+        } else if (message["type"] == "group_votes" && message['group_chat_id'] == int.parse(widget.groupId)) {
+          setState(() {
+            List<dynamic> body = jsonDecode(jsonEncode(message['votes']));
+            List<LocationVote> votes = body.map((dynamic item) => LocationVote.fromJson(item)).toList();
+            groupVotes.value = votes;
+          });
         }
       },
       onTypingStatusChanged: (typing) {
@@ -138,7 +168,15 @@ class GroupChatScreenState extends State<GroupChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.groupName)),
+      appBar: AppBar(
+        title: Text(widget.groupName),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
           if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
@@ -236,6 +274,24 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                 ),
               ],
             ),
+            FutureBuilder<GroupChat>(
+                future: groupChatInfo,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Positioned(
+                      top: 16,
+                      left: 16,
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  return ActivityBar(
+                    groupId: widget.groupId,
+                    websocketService: webSocketService,
+                    nbParticipants: _nbParticipants,
+                    groupChatInfo: snapshot.data as GroupChat,
+                    wsGroupVotes: groupVotes,
+                  );
+                }),
           ],
         ),
       ),

@@ -15,13 +15,15 @@ import (
 )
 
 type Message struct {
-	Type        string    `json:"type"`
-	Username    string    `json:"username"`
-	Message     string    `json:"message"`
-	UserID      uint      `json:"user_id"`
-	GroupChatID uint      `json:"group_chat_id"`
-	SenderID    string    `json:"sender_id"`
-	CreatedAt   time.Time `json:"created_at"` // Ajout de created_at
+	Type         string                                 `json:"type"`
+	Username     string                                 `json:"username"`
+	Message      string                                 `json:"message"`
+	UserID       uint                                   `json:"user_id"`
+	GroupChatID  uint                                   `json:"group_chat_id"`
+	SenderID     string                                 `json:"sender_id"`
+	CreatedAt    time.Time                              `json:"created_at"` // Ajout de created_at
+	Participants int                                    `json:"nb_participants"`
+	Votes        []models.GroupChatActivityLocationVote `json:"votes"`
 }
 
 var clients = make(map[*websocket.Conn]bool)
@@ -67,41 +69,60 @@ func HandleConnections(c *gin.Context) {
 
 		initializers.Logger.Debugf("Received message: %v from user: %v in group: %v", msg.Message, msg.SenderID, msg.GroupChatID)
 
+		if msg.Type == "group_participants" {
+			broadcast <- msg
+			msg.Participants = 0
+			continue
+		}
+
+		if msg.Type == "group_votes" {
+			// List of votes with location_id, user_id and count
+			fmt.Println("GROUP VOTES WS")
+			var activityLocationsVote []models.GroupChatActivityLocationVote
+			initializers.DB.Where("group_id = ?", msg.GroupChatID).Find(&activityLocationsVote)
+			msg.Votes = activityLocationsVote
+			fmt.Println("Votes:", activityLocationsVote)
+			broadcast <- msg
+			continue
+		}
+
 		if msg.Type == "typing" || msg.Type == "stop_typing" {
 			broadcast <- msg
 			continue
 		}
 
-		var user models.User
-		result := db.First(&user, msg.SenderID)
-		if result.Error != nil {
-			initializers.Logger.Errorf("Error retrieving user: %v", result.Error)
-			continue
-		}
-		msg.Username = user.Username
+		if msg.Type == "message" {
+			var user models.User
+			result := db.First(&user, msg.SenderID)
+			if result.Error != nil {
+				initializers.Logger.Errorf("Error retrieving user: %v", result.Error)
+				continue
+			}
+			msg.Username = user.Username
 
-		SenderIDAsUint64, err := strconv.ParseUint(msg.SenderID, 10, 64)
-		if err != nil {
-			fmt.Println("Erreur lors de la conversion de SenderID:", err)
-			return
-		}
-		SenderIDAsUint := uint(SenderIDAsUint64)
+			SenderIDAsUint64, err := strconv.ParseUint(msg.SenderID, 10, 64)
+			if err != nil {
+				fmt.Println("Erreur lors de la conversion de SenderID:", err)
+				return
+			}
+			SenderIDAsUint := uint(SenderIDAsUint64)
 
-		groupChatMessage := models.GroupChatMessage{
-			Message:     msg.Message,
-			UserID:      SenderIDAsUint,
-			GroupChatID: msg.GroupChatID,
-			CreatedAt:   msg.CreatedAt,
-		}
-		result = db.Create(&groupChatMessage)
-		if result.Error != nil {
-			initializers.Logger.Errorf("Error saving message: %v", result.Error)
-		} else {
-			initializers.Logger.Infoln("Message saved to database")
-		}
+			groupChatMessage := models.GroupChatMessage{
+				Message:     msg.Message,
+				UserID:      SenderIDAsUint,
+				GroupChatID: msg.GroupChatID,
+				CreatedAt:   msg.CreatedAt,
+			}
+			result = db.Create(&groupChatMessage)
+			if result.Error != nil {
+				initializers.Logger.Errorf("Error saving message: %v", result.Error)
+			} else {
+				initializers.Logger.Infoln("Message saved to database")
+			}
 
-		msg.Type = "message"
-		broadcast <- msg
+			msg.Type = "message"
+			broadcast <- msg
+		}
 	}
 }
 

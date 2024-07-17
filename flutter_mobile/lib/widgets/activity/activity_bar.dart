@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/models/activity.dart';
-import 'package:flutter_mobile/services/activities_websocket_service.dart';
+import 'package:flutter_mobile/models/group_chat.dart';
 import 'package:flutter_mobile/services/activity_service.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
 
@@ -12,6 +12,7 @@ enum ActivityBarType {
 class ActivityBar extends StatefulWidget {
   final ActivityBarType? type;
   final String groupId;
+  final GroupChat groupChatInfo;
   final WebSocketService websocketService;
   final int nbParticipants;
 
@@ -20,7 +21,8 @@ class ActivityBar extends StatefulWidget {
     this.type = ActivityBarType.small,
     required this.groupId,
     required this.websocketService,
-    required  this.nbParticipants,
+    required this.nbParticipants,
+    required this.groupChatInfo,
   });
 
   @override
@@ -70,12 +72,18 @@ class _ActivityBarState extends State<ActivityBar> {
     });
   }
 
-  void selectAnotherDate(context) {
-    showDatePicker(
+  Future<void> selectAnotherDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
       context: context,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: DateTime(2101),
     );
+    if (picked != null) {
+      ActivityService().createGroupChatActivity(
+        int.parse(widget.groupId),
+        DateTime(picked.year, picked.month, picked.day, 12),
+      );
+    }
   }
 
   @override
@@ -138,7 +146,7 @@ class _ActivityBarState extends State<ActivityBar> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Acroche",
+                            widget.groupChatInfo.catchPhrase,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(width: 8),

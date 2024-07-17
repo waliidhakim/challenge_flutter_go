@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/models/group_chat.dart';
 import 'package:flutter_mobile/services/activity_service.dart';
+import 'package:flutter_mobile/services/groupe_chat_service.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
 import 'package:flutter_mobile/widgets/activity/activity_bar.dart';
@@ -37,6 +39,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
   final int limit = 40;
   bool isLoading = false;
   ValueNotifier<bool> isTyping = ValueNotifier(false);
+  late Future<GroupChat> groupChatInfo;
 
   String _lastText = "";
 
@@ -46,11 +49,15 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     _controller = TextEditingController();
     _controller.addListener(_onTyping);
 
-    ActivityService().fetchGroupChatActivities(widget.groupId).then((activities) {
+    ActivityService()
+        .fetchGroupChatActivities(widget.groupId)
+        .then((activities) {
       setState(() {
         _nbParticipants = activities.length;
       });
     });
+
+    groupChatInfo = GroupChatService().fetchGroupChatById(widget.groupId);
 
     webSocketService = WebSocketService(
       userId: userId,
@@ -67,7 +74,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
         } else if (message["type"] == "stop_typing" &&
             message["sender_id"].toString() != userId) {
           isTyping.value = false;
-        } else if (message["type"] == "group_participants" && message['group_chat_id'] == int.parse(widget.groupId)) {
+        } else if (message["type"] == "group_participants" &&
+            message['group_chat_id'] == int.parse(widget.groupId)) {
           print("group_participants: ${message['nb_participants']}");
           setState(() {
             _nbParticipants = message['nb_participants'];
@@ -258,11 +266,24 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                 ),
               ],
             ),
-            ActivityBar(
-              groupId: widget.groupId,
-              websocketService: webSocketService,
-              nbParticipants: _nbParticipants,
-            ),
+            // Future with groupchatInfo
+            FutureBuilder<GroupChat>(
+                future: groupChatInfo,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Positioned(
+                      top: 16,
+                      left: 16,
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  return ActivityBar(
+                    groupId: widget.groupId,
+                    websocketService: webSocketService,
+                    nbParticipants: _nbParticipants,
+                    groupChatInfo: snapshot.data as GroupChat,
+                  );
+                }),
           ],
         ),
       ),

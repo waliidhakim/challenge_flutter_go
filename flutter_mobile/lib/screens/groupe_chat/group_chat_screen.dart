@@ -15,15 +15,12 @@ class GroupChatScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
 
-  const GroupChatScreen(
-      {super.key, required this.groupId, required this.groupName});
+  const GroupChatScreen({super.key, required this.groupId, required this.groupName});
 
   static String routeName = '/groupChat';
 
-  static Future<void> navigateTo(
-      BuildContext context, String groupId, String groupName) {
-    return context
-        .push(routeName, extra: {"groupId": groupId, "groupName": groupName});
+  static Future<void> navigateTo(BuildContext context, String groupId, String groupName) {
+    return context.push(routeName, extra: {"groupId": groupId, "groupName": groupName});
   }
 
   @override
@@ -52,9 +49,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     _controller = TextEditingController();
     _controller.addListener(_onTyping);
 
-    ActivityService()
-        .fetchGroupChatActivities(widget.groupId)
-        .then((activities) {
+    ActivityService().fetchGroupChatActivities(widget.groupId).then((activities) {
       setState(() {
         _nbParticipants = activities.length;
       });
@@ -71,14 +66,11 @@ class GroupChatScreenState extends State<GroupChatScreen> {
           setState(() {
             messages.insert(0, message);
           });
-        } else if (message["type"] == "typing" &&
-            message["sender_id"].toString() != userId) {
+        } else if (message["type"] == "typing" && message["sender_id"].toString() != userId) {
           isTyping.value = true;
-        } else if (message["type"] == "stop_typing" &&
-            message["sender_id"].toString() != userId) {
+        } else if (message["type"] == "stop_typing" && message["sender_id"].toString() != userId) {
           isTyping.value = false;
-        } else if (message["type"] == "group_participants" &&
-            message['group_chat_id'] == int.parse(widget.groupId)) {
+        } else if (message["type"] == "group_participants" && message['group_chat_id'] == int.parse(widget.groupId)) {
           setState(() {
             _nbParticipants = message['nb_participants'];
           });
@@ -116,8 +108,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse(
-            'http://10.0.2.2:4000/group-chat/${widget.groupId}/messages?limit=$limit&offset=$offset'),
+        Uri.parse('http://10.0.2.2:4000/group-chat/${widget.groupId}/messages?limit=$limit&offset=$offset'),
         headers: {
           'Authorization': 'Bearer ${sharedPrefs.token}',
         },
@@ -131,8 +122,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
               "sender_id": msg['sender_id'],
               "username": msg['username'] ?? '',
               "message": msg['message'] ?? '',
-              "created_at":
-                  msg['created_at'], // Ajoutez l'heure de création ici
+              "created_at": msg['created_at'], // Ajoutez l'heure de création ici
             };
           }).toList());
         });
@@ -153,8 +143,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
       final message = _controller.text;
       webSocketService.sendMessage(message);
       _controller.clear();
-      webSocketService
-          .stopTyping(); // Assurez-vous d'envoyer stop_typing lorsque le message est envoyé
+      webSocketService.stopTyping(); // Assurez-vous d'envoyer stop_typing lorsque le message est envoyé
     }
   }
 
@@ -194,24 +183,22 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                     itemCount: messages.length + 1,
                     itemBuilder: (context, index) {
                       if (index == messages.length) {
-                        return isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : const SizedBox.shrink();
+                        return isLoading ? const Center(child: CircularProgressIndicator()) : const SizedBox.shrink();
                       }
                       final message = messages[index];
                       final isMe = message["sender_id"].toString() == userId;
+                      final datetime = DateTime.parse(message["created_at"]);
+                      final messageTime = DateTime(datetime.year, datetime.month, datetime.day, datetime.hour,datetime.minute, 0, 0).toString();
                       return Container(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 10),
-                        padding: const EdgeInsets.all(10),
+                        margin: EdgeInsets.only(
+                          bottom: 8,
+                          left: isMe ? 48 : 8,
+                          right: isMe ? 8 : 48,
+                          top: 8,),
+                        padding: const EdgeInsets.all(0),
                         decoration: BoxDecoration(
-                          color: isMe
-                              ? Colors.green.shade100
-                              : Colors.blue.shade100,
+                          color: isMe ? Theme.of(context).colorScheme.primaryContainer : Colors.grey[200],
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isMe ? Colors.green : Colors.blue,
-                          ),
                         ),
                         child: ListTile(
                           title: Text(isMe ? "Me" : message["username"]),
@@ -220,8 +207,9 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                             children: [
                               Text(message["message"]),
                               Text(
-                                message[
-                                    "created_at"], // Affichez l'heure de création
+                                messageTime.substring(0,
+                                  messageTime.lastIndexOf(".") - 3,
+                                ), // Affichez l'heure de création
                                 style: TextStyle(fontSize: 10),
                               ),
                             ],
@@ -250,8 +238,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                     }
                   },
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
                       Expanded(

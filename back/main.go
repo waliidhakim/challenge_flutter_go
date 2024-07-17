@@ -17,13 +17,14 @@ import (
 var db *gorm.DB
 
 type Message struct {
-	Type         string `json:"type"`
-	Username     string `json:"username"`
-	Message      string `json:"message"`
-	UserID       uint   `json:"user_id"`
-	GroupChatID  uint   `json:"group_chat_id"`
-	SenderID     string `json:"sender_id"`
-	Participants int    `json:"nb_participants"`
+	Type         string                                 `json:"type"`
+	Username     string                                 `json:"username"`
+	Message      string                                 `json:"message"`
+	UserID       uint                                   `json:"user_id"`
+	GroupChatID  uint                                   `json:"group_chat_id"`
+	SenderID     string                                 `json:"sender_id"`
+	Participants int                                    `json:"nb_participants"`
+	Votes        []models.GroupChatActivityLocationVote `json:"votes"`
 }
 
 var clients = make(map[*websocket.Conn]bool)
@@ -66,6 +67,17 @@ func handleConnections(c *gin.Context) {
 		if msg.Type == "group_participants" {
 			broadcast <- msg
 			msg.Participants = 0
+			continue
+		}
+
+		if msg.Type == "group_votes" {
+			// List of votes with location_id, user_id and count
+			fmt.Println("GROUP VOTES WS")
+			var activityLocationsVote []models.GroupChatActivityLocationVote
+			initializers.DB.Where("group_id = ?", msg.GroupChatID).Find(&activityLocationsVote)
+			msg.Votes = activityLocationsVote
+			fmt.Println("Votes:", activityLocationsVote)
+			broadcast <- msg
 			continue
 		}
 
@@ -199,6 +211,20 @@ func main() {
 	router.GET("/group-chat-activity/user/:user_id/group-chat/:group_chat_id", middlewares.RequireAuth, controllers.ActivityParticipationGetByGroupChatIDAndUserID)
 	router.GET("/group-chat-activity/group-chat/:group_chat_id/my-today-participation", middlewares.RequireAuth, controllers.ActivityParticipationGetByGroupChatIDAndUserIDAndIsToday)
 
+	// GroupChatActivityLocation Routes
+	router.GET("/group-chat-activity-location", middlewares.RequireAuth, controllers.ActivityLocationGet)
+	router.GET("/group-chat-activity-location/group-chat/:group_chat_id", middlewares.RequireAuth, controllers.ActivityLocationGetByGroupChatID)
+	router.POST("/group-chat-activity-location", middlewares.RequireAuth, controllers.ActivityLocationCreate)
+	router.DELETE("/group-chat-activity-location/:id", middlewares.RequireAuth, controllers.ActivityLocationDelete)
+
+	// GroupChatActivityLocationVote Routes
+	router.GET("/group-chat-activity-location-vote", middlewares.RequireAuth, controllers.ActivityLocationVoteGet)
+	router.GET("/group-chat-activity-location-vote/group-chat/:group_chat_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteGetByGroupIdToday)
+	router.GET("/group-chat-activity-location-vote/location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteGetByLocationIdToday)
+	router.POST("/group-chat-activity-location-vote", middlewares.RequireAuth, controllers.ActivityLocationVoteCreate)
+	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
+	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
+	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)

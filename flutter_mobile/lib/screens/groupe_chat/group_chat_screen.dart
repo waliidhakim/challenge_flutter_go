@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/models/group_chat.dart';
+import 'package:flutter_mobile/models/location_vote.dart';
 import 'package:flutter_mobile/services/activity_service.dart';
 import 'package:flutter_mobile/services/groupe_chat_service.dart';
+import 'package:flutter_mobile/services/location_vote_service.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
 import 'package:flutter_mobile/widgets/activity/activity_bar.dart';
@@ -40,6 +42,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
   bool isLoading = false;
   ValueNotifier<bool> isTyping = ValueNotifier(false);
   late Future<GroupChat> groupChatInfo;
+  late ValueNotifier<List<LocationVote>> groupVotes = ValueNotifier([]);
 
   String _lastText = "";
 
@@ -76,9 +79,14 @@ class GroupChatScreenState extends State<GroupChatScreen> {
           isTyping.value = false;
         } else if (message["type"] == "group_participants" &&
             message['group_chat_id'] == int.parse(widget.groupId)) {
-          print("group_participants: ${message['nb_participants']}");
           setState(() {
             _nbParticipants = message['nb_participants'];
+          });
+        } else if (message["type"] == "group_votes" && message['group_chat_id'] == int.parse(widget.groupId)) {
+          setState(() {
+            List<dynamic> body = jsonDecode(jsonEncode(message['votes']));
+            List<LocationVote> votes = body.map((dynamic item) => LocationVote.fromJson(item)).toList();
+            groupVotes.value = votes;
           });
         }
       },
@@ -266,7 +274,6 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                 ),
               ],
             ),
-            // Future with groupchatInfo
             FutureBuilder<GroupChat>(
                 future: groupChatInfo,
                 builder: (context, snapshot) {
@@ -282,6 +289,7 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                     websocketService: webSocketService,
                     nbParticipants: _nbParticipants,
                     groupChatInfo: snapshot.data as GroupChat,
+                    wsGroupVotes: groupVotes,
                   );
                 }),
           ],

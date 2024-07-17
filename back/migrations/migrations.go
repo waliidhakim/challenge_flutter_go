@@ -19,6 +19,8 @@ func main() {
 		&models.GroupChatMessage{},
 		&models.GroupChatMessageRead{},
 		&models.GroupChatActivityParticipation{},
+		&models.GroupChatActivityLocation{},
+		&models.GroupChatActivityLocationVote{},
 		&models.Setting{},
 	)
 	if err != nil {

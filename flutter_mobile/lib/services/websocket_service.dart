@@ -71,14 +71,20 @@ class WebSocketService {
   }
 
   void groupParticipants(int nbParticipants) {
-    print('groupParticipants called');
-    print(nbParticipants);
     final groupParticipants = {
       'type': 'group_participants',
       'group_chat_id': int.parse(groupId),
       'nb_participants': nbParticipants,
     };
     _channel.sink.add(jsonEncode(groupParticipants));
+  }
+
+  void groupVotes() {
+    final groupVotes = {
+      'type': 'group_votes',
+      'group_chat_id': int.parse(groupId),
+    };
+    _channel.sink.add(jsonEncode(groupVotes));
   }
 
   void disconnect() {

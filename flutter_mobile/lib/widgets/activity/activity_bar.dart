@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/models/activity.dart';
 import 'package:flutter_mobile/models/group_chat.dart';
+import 'package:flutter_mobile/models/location.dart';
+import 'package:flutter_mobile/models/location_vote.dart';
 import 'package:flutter_mobile/services/activity_service.dart';
+import 'package:flutter_mobile/services/location_service.dart';
+import 'package:flutter_mobile/services/location_vote_service.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
+import 'package:flutter_mobile/utils/shared_prefs.dart';
 
 enum ActivityBarType {
   small,
@@ -15,6 +22,9 @@ class ActivityBar extends StatefulWidget {
   final GroupChat groupChatInfo;
   final WebSocketService websocketService;
   final int nbParticipants;
+  final ValueNotifier<List<LocationVote>>? wsGroupVotes;
+
+  // final Future<List<LocationVote>> groupVotes;
 
   const ActivityBar({
     super.key,
@@ -23,6 +33,8 @@ class ActivityBar extends StatefulWidget {
     required this.websocketService,
     required this.nbParticipants,
     required this.groupChatInfo,
+    required this.wsGroupVotes,
+    // required this.groupVotes,
   });
 
   @override
@@ -32,8 +44,11 @@ class ActivityBar extends StatefulWidget {
 class _ActivityBarState extends State<ActivityBar> {
   bool _isExtended = false;
   bool _userIsParticipating = false;
-  String _userVote = "";
+  int? _userVote;
+  final String userId = sharedPrefs.userId;
   late Future<Activity> userActivity;
+  late Future<List<Location>> groupLocations;
+  late Future<List<LocationVote>> groupVotes;
 
   void _toggleExtended() {
     setState(() {
@@ -46,17 +61,19 @@ class _ActivityBarState extends State<ActivityBar> {
       userActivity.then((value) {
         if (value.id != null && value.id != 0) {
           ActivityService().deleteGroupChatActivity(value.id!);
+          LocationVoteService().deleteVoteInGroup(int.parse(widget.groupId)).then((value) {
+            widget.websocketService.groupVotes();
+          });
           setState(() {
             _userIsParticipating = false;
+            _userVote = 0;
           });
           widget.websocketService.groupParticipants(widget.nbParticipants - 1);
         }
       });
     } else {
       // create user activity
-      ActivityService()
-          .createGroupChatActivity(int.parse(widget.groupId), DateTime.now())
-          .then((value) {
+      ActivityService().createGroupChatActivity(int.parse(widget.groupId), DateTime.now()).then((value) {
         setState(() {
           _userIsParticipating = true;
           userActivity = Future.value(value);
@@ -67,6 +84,10 @@ class _ActivityBarState extends State<ActivityBar> {
   }
 
   void handleVoteChange(value) {
+    LocationVoteService().deleteVoteInGroup(int.parse(widget.groupId));
+    LocationVoteService().createVote(value, int.parse(widget.groupId)).then((value) {
+      widget.websocketService.groupVotes();
+    });
     setState(() {
       _userVote = value;
     });
@@ -89,20 +110,6 @@ class _ActivityBarState extends State<ActivityBar> {
   @override
   void initState() {
     super.initState();
-    /* webSocketService = ActivitiesWebSocketService(
-      groupId: widget.groupId,
-      onMessageReceived: (message) {
-        print("Received message");
-        if (message["type"] == "group_participants") {
-          print("Received group_participants message");
-          print(message);
-          setState(() {
-            _participants = message["nb_participants"];
-          });
-        }
-      },
-    );
-    */
     userActivity = ActivityService().fetchUserGroupChatActivity(widget.groupId);
     // set state with the fetched settings
     userActivity.then((value) {
@@ -112,16 +119,19 @@ class _ActivityBarState extends State<ActivityBar> {
         });
       }
     });
+    groupLocations = LocationService().fetchGroupLocations(int.parse(widget.groupId));
+    groupVotes = LocationVoteService().fetchGroupLocationVotes(int.parse(widget.groupId));
+    groupVotes.then((votes) {
+      if (votes.where((vote) {
+        return vote.userId == int.parse(userId);
+      }).isNotEmpty) {
+        var userVote = votes.firstWhere((vote) => vote.userId == int.parse(userId));
+        setState(() {
+          _userVote = userVote.locationId;
+        });
+      }
+    });
   }
-
-/*
-  @override
-  void dispose() {
-    webSocketService.disconnect();
-    super.dispose();
-  }
-
- */
 
   Widget build(BuildContext context) {
     return (_isExtended)
@@ -131,8 +141,7 @@ class _ActivityBarState extends State<ActivityBar> {
                 Container(
                   height: 125,
                   decoration: BoxDecoration(
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.outline),
+                    border: Border.all(color: Theme.of(context).colorScheme.outline),
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -163,12 +172,8 @@ class _ActivityBarState extends State<ActivityBar> {
                           ActionChip(
                               label: Text("Je participe"),
                               avatar: Icon(
-                                _userIsParticipating
-                                    ? Icons.check_circle
-                                    : Icons.check_circle_outline,
-                                color: _userIsParticipating
-                                    ? Colors.green
-                                    : Colors.grey,
+                                _userIsParticipating ? Icons.check_circle : Icons.check_circle_outline,
+                                color: _userIsParticipating ? Colors.green : Colors.grey,
                               ),
                               onPressed: () {
                                 handleParticipationChange();
@@ -179,9 +184,7 @@ class _ActivityBarState extends State<ActivityBar> {
                           ),
                           const SizedBox(width: 8),
                           Center(
-                            child: IconButton(
-                                onPressed: _toggleExtended,
-                                icon: const Icon(Icons.expand_less_outlined)),
+                            child: IconButton(onPressed: _toggleExtended, icon: const Icon(Icons.expand_less_outlined)),
                           )
                         ],
                       ),
@@ -189,83 +192,96 @@ class _ActivityBarState extends State<ActivityBar> {
                   ),
                 ),
                 if (_userIsParticipating)
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                          color: Theme.of(context).colorScheme.outline),
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    margin: const EdgeInsets.all(8),
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Lieux",
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                                onPressed: () {
-                                  selectAnotherDate(context);
-                                },
-                                icon: const Icon(Icons.directions)),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            ListTile(
-                              title: Row(
+                  FutureBuilder<List<Location>>(
+                      future: groupLocations,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return const Text("Error loading locations");
+                        }
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        }
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Theme.of(context).colorScheme.outline),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text("Café Oz"),
+                                  Text(
+                                    "Lieux",
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
                                   const SizedBox(width: 8),
-                                  Text('(1 votes)',
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall)
+                                  IconButton(
+                                      onPressed: () {
+                                        selectAnotherDate(context);
+                                      },
+                                      icon: const Icon(Icons.directions)),
                                 ],
                               ),
-                              subtitle: const LinearProgressIndicator(
-                                value: 0.3,
-                              ),
-                              leading: Radio(
-                                value: "Café Oz",
-                                groupValue: _userVote,
-                                onChanged: (value) => {
-                                  if (value != null) {handleVoteChange(value)}
-                                },
-                              ),
-                            ),
-                            ListTile(
-                              title: Row(
+                              Column(
                                 children: [
-                                  const Text('Le Phenix'),
-                                  const SizedBox(width: 8),
-                                  Text('(3 votes)',
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall)
+                                  for (Location location in snapshot.data!)
+                                    FutureBuilder(
+                                        future: groupVotes,
+                                        builder: (context, votes) {
+                                          if (votes.connectionState == ConnectionState.waiting) {
+                                            return const Text("Loading votes...");
+                                          }
+                                          if (votes.hasError) {
+                                            return const Text("Error loading votes");
+                                          }
+
+                                          return ListTile(
+                                            title: Row(
+                                              children: [
+                                                Text(location.name!),
+                                                const SizedBox(width: 8),
+                                                Builder(builder: (context) {
+                                                  var wsLength = widget.wsGroupVotes!.value.where((vote) => vote.locationId == location.id).length;
+                                                  var dbLength = votes.data!.where((vote) => vote.locationId == location.id).length;
+                                                  return Text('(${widget.wsGroupVotes!.value.isEmpty ? dbLength : wsLength} votes)',
+                                                      style: Theme.of(context).textTheme.bodySmall);
+                                                })
+                                              ],
+                                            ),
+                                            subtitle: Builder(builder: (context) {
+                                              var wsLength = widget.wsGroupVotes!.value.where((vote) => vote.locationId == location.id).length;
+                                              var wsTotal = widget.wsGroupVotes!.value.length;
+                                              var dbLength = votes.data!.where((vote) => vote.locationId == location.id).length;
+                                              var dbTotal = votes.data!.length;
+                                              var progress = widget.wsGroupVotes!.value.isEmpty ? dbLength / dbTotal : wsLength / wsTotal;
+
+                                              return LinearProgressIndicator(
+                                                value: progress,
+                                              );
+                                            }),
+                                            leading: Radio(
+                                              value: location.id!,
+                                              groupValue: _userVote,
+                                              onChanged: (value) {
+                                                if (value != null) {
+                                                  handleVoteChange(value);
+                                                }
+                                              },
+                                            ),
+                                          );
+                                        }),
                                 ],
-                              ),
-                              subtitle: const LinearProgressIndicator(
-                                value: 0.7,
-                              ),
-                              leading: Radio(
-                                value: "Le Phenix",
-                                groupValue: _userVote,
-                                onChanged: (value) => {
-                                  if (value != null) {handleVoteChange(value)}
-                                },
-                              ),
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  )
+                              )
+                            ],
+                          ),
+                        );
+                      }),
               ],
             ),
           )

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web/stats_page.dart';
 import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';
-import 'package:flutter_web/group_chat_crud_page.dart'; // Importer la nouvelle page
+import 'package:flutter_web/group_chat_crud_page.dart';
+import 'package:flutter_web/feature_management_page.dart'; // Importez la nouvelle page
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -13,18 +14,13 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Accueil',
-          style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold), // Couleur blanche et texte en gras
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true, // Centre le titre
-        backgroundColor:
-            Colors.lightBlue[100], // Couleur de fond de la barre de navigation
+        centerTitle: true,
+        backgroundColor: Colors.lightBlue[100],
         elevation: 4.0,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(10), // Bordure arrondie pour l'appBar
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
         ),
       ),
       drawer: Drawer(
@@ -33,8 +29,7 @@ class HomePage extends StatelessWidget {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 119, 203,
-                    241), // Harmonisation des couleurs avec le bouton de connexion
+                color: Color.fromARGB(255, 119, 203, 241),
               ),
               child: Text('Menu Admin',
                   style: TextStyle(color: Colors.white, fontSize: 24)),
@@ -68,10 +63,19 @@ class HomePage extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.settings, color: Colors.lightBlue),
+              title: const Text('Gestion de Fonctionnalités'),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const FeatureManagementPage()));
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.lightBlue),
               title: const Text('Déconnexion'),
               onTap: () {
-                // Gérer la déconnexion ici
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => const LoginPage()));
               },
@@ -85,22 +89,16 @@ class HomePage extends StatelessWidget {
           children: [
             const Text(
               'Bienvenue sur la page d\'accueil',
-              style: TextStyle(
-                  fontSize: 20), // Style ajouté pour agrandir le texte
+              style: TextStyle(fontSize: 20),
             ),
-            const SizedBox(
-                height: 20), // Ajoute un espace entre le texte et les icônes
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.home, size: 250, color: Colors.lightBlue),
-                const SizedBox(
-                    width: 20), // Ajoute un espace entre les deux icônes
-                Image.asset(
-                  'assets/images/icons8-engrenage-64.png',
-                  width: 250,
-                  height: 250,
-                ),
+                const SizedBox(width: 20),
+                Image.asset('assets/images/icons8-engrenage-64.png',
+                    width: 250, height: 250),
               ],
             ),
           ],

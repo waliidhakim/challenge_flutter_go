@@ -3,6 +3,9 @@ package utils
 import (
 	"log"
 	"mime/multipart"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -43,4 +46,43 @@ func UploadImageToS3(file multipart.FileHeader, directory string) (string, error
 	}
 
 	return uploadOutput.Location, nil
+}
+
+func UploadLogsEveryTenSeconds() {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get current directory: %v", err)
+	}
+	logsPath := filepath.Join(currentDir, "logs", "logs.txt")
+
+	for {
+		time.Sleep(10 * time.Second)
+
+		log.Printf("Attempting to open log file at: %v", logsPath)
+
+		file, err := os.Open(logsPath)
+		if err != nil {
+			log.Printf("Error opening log file at %v. Error: %v", logsPath, err)
+			continue
+		}
+
+		fileInfo, err := file.Stat()
+		if err != nil {
+			log.Printf("Error getting file info: %v", err)
+			file.Close()
+			continue
+		}
+
+		fileHeader := multipart.FileHeader{
+			Filename: fileInfo.Name(),
+			Size:     fileInfo.Size(),
+		}
+
+		_, err = UploadImageToS3(fileHeader, "logs-directory/"+fileInfo.Name())
+		if err != nil {
+			log.Printf("Failed to upload log file: %v", err)
+		}
+
+		file.Close()
+	}
 }

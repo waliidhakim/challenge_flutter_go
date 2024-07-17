@@ -1,0 +1,25 @@
+info:
+  contact: {}
+paths:
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Add a new user to the system
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add new user
+      tags:
+      - user
+swagger: "2.0"

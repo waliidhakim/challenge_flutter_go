@@ -1,0 +1,8 @@
+{"level":"info","timestamp":"2024-07-17T13:55:49.395Z","msg":"Daily Logger initialized"}
+{"level":"info","timestamp":"2024-07-17T13:55:49.586Z","msg":"Successfully connected to the database"}
+{"level":"info","timestamp":"2024-07-17T14:04:28.059Z","msg":"Daily Logger initialized"}
+{"level":"info","timestamp":"2024-07-17T14:04:28.258Z","msg":"Successfully connected to the database"}
+{"level":"info","timestamp":"2024-07-17T14:05:22.199Z","msg":"Daily Logger initialized"}
+{"level":"info","timestamp":"2024-07-17T14:05:22.376Z","msg":"Successfully connected to the database"}
+{"level":"info","timestamp":"2024-07-17T14:08:13.564Z","msg":"Daily Logger initialized"}
+{"level":"info","timestamp":"2024-07-17T14:08:13.727Z","msg":"Successfully connected to the database"}

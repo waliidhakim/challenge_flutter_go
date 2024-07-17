@@ -24,6 +24,20 @@ func GroupChatGet(context *gin.Context) {
 }
 
 func GroupChatPost(context *gin.Context) {
+
+	isActive, errFeatureFlipping := utils.IsFeatureActive(initializers.DB, "GroupChatCreation")
+	if errFeatureFlipping != nil {
+		initializers.Logger.Errorln("Error checking feature availability:", errFeatureFlipping)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+	if !isActive {
+		context.JSON(http.StatusForbidden, gin.H{
+			"error": "La création de group chat est actuellement désactivée. Veuillez réessayer plus tard.",
+		})
+		return
+	}
+
 	var body struct {
 		Name        string
 		Activity    string

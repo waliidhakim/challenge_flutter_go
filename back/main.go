@@ -5,12 +5,14 @@ import (
 	"backend/initializers"
 	"backend/middlewares"
 	"backend/services"
+	"backend/utils"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
 )
 
@@ -18,10 +20,11 @@ var db *gorm.DB
 
 func init() {
 	initializers.InitLogger()
+	initializers.InitDailyLogger()
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
-	controllers.InitFirebase()
+	//controllers.InitFirebase()
 }
 
 func main() {
@@ -36,6 +39,14 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// @Summary Ping example
+	// @Schemes
+	// @Description Do ping
+	// @Tags Example
+	// @Accept json
+	// @Produce json
+	// @Success 200 {object} map[string]interface{}
+	// @Router / [get]
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -73,14 +84,30 @@ func main() {
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
-    router.POST("/send-notification", controllers.SendNotification)
-    
+	router.POST("/send-notification", controllers.SendNotification)
+
+	// Feature Flipping fonctionnalité
+	// Feature Management Routes
+	router.GET("/features", middlewares.RequireAuth, controllers.FeaturesList)
+	router.POST("/features", middlewares.RequireAuth, controllers.FeatureCreate)
+	router.GET("/features/:id", middlewares.RequireAuth, controllers.FeatureGet)
+	router.PATCH("/features/:id", middlewares.RequireAuth, controllers.FeatureUpdate)
+	router.DELETE("/features/:id", middlewares.RequireAuth, controllers.FeatureDelete)
+
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)
 	})
 
+	router.GET("/swagger/*any", gin.WrapH(httpSwagger.Handler(
+		httpSwagger.URL("/docs/swagger.json"), // URL vers le fichier swagger.json
+	)))
+
+	router.Static("/docs", "./docs")
+
 	services.InitWebSocket(db)
+
+	go utils.UploadLogsEveryTenSeconds()
 
 	err := router.Run()
 	if err != nil {

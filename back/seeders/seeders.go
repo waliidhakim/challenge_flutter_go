@@ -49,6 +49,7 @@ func main() {
 }
 
 func ClearTables(db *gorm.DB) {
+	db.Exec("DELETE FROM feature_flippeds")
 	db.Exec("DELETE FROM group_chat_messages")
 	db.Exec("DELETE FROM group_chat_users")
 	db.Exec("DELETE FROM group_chats")
@@ -59,6 +60,7 @@ func Load(db *gorm.DB) {
 	createUsers(db)
 	createGroupChats(db)
 	createGroupChatActivityParticipations(db)
+	createFeatureFlipping(db)
 }
 
 func createUsers(db *gorm.DB) {
@@ -144,6 +146,27 @@ func createGroupChatActivityParticipations(db *gorm.DB) {
 	for _, groupChatActivityParticipation := range groupChatActivityParticipations {
 		if err := db.Create(&groupChatActivityParticipation).Error; err != nil {
 			log.Fatalf("could not create group chat activity participation: %v", err)
+		}
+	}
+
+}
+
+func createFeatureFlipping(db *gorm.DB) {
+
+	featuresToBeFlipped := []models.FeatureFlipped{
+		{
+			FeatureName: "GroupChatCreation",
+			IsActive:    true,
+		},
+		{
+			FeatureName: "GroupChatDeletion",
+			IsActive:    true,
+		},
+	}
+
+	for _, feature := range featuresToBeFlipped {
+		if err := db.Create(&feature).Error; err != nil {
+			log.Fatalf("could not create feature flipping data: %v", err)
 		}
 	}
 

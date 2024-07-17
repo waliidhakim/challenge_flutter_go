@@ -42,6 +42,15 @@ func UserGetById(context *gin.Context) {
 	context.JSON(http.StatusOK, user)
 }
 
+// UserPost godoc
+// @Summary Add new user
+// @Description Add a new user to the system
+// @Tags user
+// @Accept json
+// @Produce json
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /user [post]
 func UserPost(context *gin.Context) {
 	var body struct {
 		Firstname string

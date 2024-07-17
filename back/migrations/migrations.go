@@ -20,6 +20,7 @@ func main() {
 		&models.GroupChatMessageRead{},
 		&models.Setting{},
 		&models.GroupChatActivityParticipation{},
+		&models.FeatureFlipped{},
 	)
 	if err != nil {
 		initializers.Logger.Errorln("Error while migrating User")

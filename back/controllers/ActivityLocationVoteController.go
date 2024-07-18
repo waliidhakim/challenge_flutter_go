@@ -37,6 +37,10 @@ func ActivityLocationVoteGetByGroupIdToday(context *gin.Context) {
 			}
 		}
 	}
+	if len(activityLocationsVotes) == 0 {
+		context.JSON(http.StatusOK, make([]string, 0))
+		return
+	}
 	context.JSON(http.StatusOK, activityLocationsVotes)
 }
 

@@ -18,7 +18,6 @@ var db *gorm.DB
 
 func init() {
 	initializers.InitLogger()
-
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
@@ -73,11 +72,6 @@ func main() {
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
-	// Notification Routes
-	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
-	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
-	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
-
 	// GroupChatActivity Routes
 	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)
 	router.GET("/group-chat-activity/:id", middlewares.RequireAuth, controllers.ActivityParticipationGetById)
@@ -104,6 +98,11 @@ func main() {
 	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
 	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
 	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
+
+	// Notification Routes
+	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
+	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
+	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
 
 	// Ajouter les routes de logs
 	router.GET("/logs", middlewares.RequireAuth, controllers.GetLogs)

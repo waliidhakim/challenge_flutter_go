@@ -49,6 +49,8 @@ class _ActivityBarState extends State<ActivityBar> {
   late Future<Activity> userActivity;
   late Future<List<Location>> groupLocations;
   late Future<List<LocationVote>> groupVotes;
+  String name = '';
+  String address = '';
 
   void _toggleExtended() {
     setState(() {
@@ -91,6 +93,56 @@ class _ActivityBarState extends State<ActivityBar> {
     setState(() {
       _userVote = value;
     });
+  }
+
+  Future<void> addNewLocation() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ajouter un lieu'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                const Text('Ajoutez un lieu au sondage.'),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Nom',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    name = value;
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Addresse',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    address = value;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ajouter'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await LocationService().createLocation(int.parse(widget.groupId), name, address);
+                setState(() {
+                  groupLocations = LocationService().fetchGroupLocations(int.parse(widget.groupId));
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> selectAnotherDate(BuildContext context) async {
@@ -136,197 +188,268 @@ class _ActivityBarState extends State<ActivityBar> {
   Widget build(BuildContext context) {
     return (_isExtended)
         ? Container(
-            child: Column(
-              children: [
-                Container(
-                  height: 125,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  margin: const EdgeInsets.all(8),
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            widget.groupChatInfo.catchPhrase,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                              onPressed: () {
-                                selectAnotherDate(context);
-                              },
-                              icon: const Icon(Icons.calendar_month)),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ActionChip(
-                              label: Text("Je participe"),
-                              avatar: Icon(
-                                _userIsParticipating ? Icons.check_circle : Icons.check_circle_outline,
-                                color: _userIsParticipating ? Colors.green : Colors.grey,
-                              ),
-                              onPressed: () {
-                                handleParticipationChange();
-                              }),
-                          Text(
-                            "${widget.nbParticipants} personnes participent.",
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(width: 8),
-                          Center(
-                            child: IconButton(onPressed: _toggleExtended, icon: const Icon(Icons.expand_less_outlined)),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (_userIsParticipating)
-                  FutureBuilder<List<Location>>(
-                      future: groupLocations,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return const Text("Error loading locations");
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        }
-                        return Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Lieux",
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                      onPressed: () {
-                                        selectAnotherDate(context);
-                                      },
-                                      icon: const Icon(Icons.directions)),
-                                ],
-                              ),
-                              Column(
-                                children: [
-                                  for (Location location in snapshot.data!)
-                                    FutureBuilder(
-                                        future: groupVotes,
-                                        builder: (context, votes) {
-                                          if (votes.connectionState == ConnectionState.waiting) {
-                                            return const Text("Loading votes...");
-                                          }
-                                          if (votes.hasError) {
-                                            return const Text("Error loading votes");
-                                          }
-
-                                          return ListTile(
-                                            title: Row(
-                                              children: [
-                                                Text(location.name!),
-                                                const SizedBox(width: 8),
-                                                Builder(builder: (context) {
-                                                  var wsLength = widget.wsGroupVotes!.value.where((vote) => vote.locationId == location.id).length;
-                                                  var dbLength = votes.data!.where((vote) => vote.locationId == location.id).length;
-                                                  return Text('(${widget.wsGroupVotes!.value.isEmpty ? dbLength : wsLength} votes)',
-                                                      style: Theme.of(context).textTheme.bodySmall);
-                                                })
-                                              ],
-                                            ),
-                                            subtitle: Builder(builder: (context) {
-                                              var wsLength = widget.wsGroupVotes!.value.where((vote) => vote.locationId == location.id).length;
-                                              var wsTotal = widget.wsGroupVotes!.value.length;
-                                              var dbLength = votes.data!.where((vote) => vote.locationId == location.id).length;
-                                              var dbTotal = votes.data!.length;
-                                              var progress = widget.wsGroupVotes!.value.isEmpty ? dbLength / dbTotal : wsLength / wsTotal;
-
-                                              return LinearProgressIndicator(
-                                                value: progress,
-                                              );
-                                            }),
-                                            leading: Radio(
-                                              value: location.id!,
-                                              groupValue: _userVote,
-                                              onChanged: (value) {
-                                                if (value != null) {
-                                                  handleVoteChange(value);
-                                                }
-                                              },
-                                            ),
-                                          );
-                                        }),
-                                ],
-                              )
-                            ],
-                          ),
-                        );
-                      }),
-              ],
-            ),
-          )
-        : Container(
+      child: Column(
+        children: [
+          Container(
+            height: 125,
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+              border: Border.all(color: Theme
+                  .of(context)
+                  .colorScheme
+                  .outline
+                  .withOpacity(0.5)),
               color: Colors.white,
               borderRadius: BorderRadius.circular(4),
             ),
             margin: const EdgeInsets.all(8),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${widget.nbParticipants} personnes participent.",
-                      style: Theme.of(context).textTheme.bodySmall,
+                      widget.groupChatInfo.catchPhrase,
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .titleMedium,
                     ),
-                    const SizedBox(width: 4),
-                    // display icon if _userIsParticipating is true
-                    if (_userIsParticipating)
-                      const Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        size: 16,
-                      ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                        onPressed: () {
+                          selectAnotherDate(context);
+                        },
+                        icon: const Icon(Icons.calendar_month)),
                   ],
                 ),
-                const SizedBox(width: 8),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    ActionChip(
+                        label: Text("Je participe"),
+                        avatar: Icon(
+                          _userIsParticipating ? Icons.check_circle : Icons.check_circle_outline,
+                          color: _userIsParticipating ? Colors.green : Colors.grey,
+                        ),
+                        onPressed: () {
+                          handleParticipationChange();
+                        }),
                     Text(
-                      "Le Phenix",
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      "${widget.nbParticipants} personnes participent.",
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodySmall,
                     ),
-                    IconButton(
-                      onPressed: _toggleExtended,
-                      icon: const Icon(Icons.expand_more),
-                    ),
+                    const SizedBox(width: 8),
+                    Center(
+                      child: IconButton(onPressed: _toggleExtended, icon: const Icon(Icons.expand_less_outlined)),
+                    )
                   ],
                 ),
               ],
             ),
-          );
+          ),
+          if (_userIsParticipating)
+            FutureBuilder<List<Location>>(
+                future: groupLocations,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Text("Error loading locations");
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme
+                          .of(context)
+                          .colorScheme
+                          .outline
+                          .withOpacity(0.5)),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    margin: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Lieux",
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .titleMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            Row(
+                              children: [
+                                IconButton(
+                                    onPressed: () {
+                                      addNewLocation();
+                                    },
+                                    icon: const Icon(Icons.add)),
+                                IconButton(
+                                    onPressed: () {
+                                      selectAnotherDate(context);
+                                    },
+                                    icon: const Icon(Icons.directions)),
+                              ],
+                            )
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            for (Location location in snapshot.data!)
+                              FutureBuilder(
+                                  future: groupVotes,
+                                  builder: (context, votes) {
+                                    if (votes.connectionState == ConnectionState.waiting) {
+                                      return const Text("Loading votes...");
+                                    }
+                                    if (votes.hasError) {
+                                      return const Text("Error loading votes");
+                                    }
+
+                                    return ListTile(
+                                      title: Row(
+                                        children: [
+                                          GestureDetector(
+                                            child: Text(location.name!),
+                                            onLongPress: () async {
+                                              final RenderBox overlay =
+                                              Overlay
+                                                  .of(context)
+                                                  .context
+                                                  .findRenderObject() as RenderBox;
+                                              final List<PopupMenuEntry<String>> menuItems = [
+                                                const PopupMenuItem<String>(
+                                                  value: 'delete',
+                                                  child: Text('Supprimer le lieu'),
+                                                ),
+                                              ];
+                                              final result = await showMenu(
+                                                context: context,
+                                                position: RelativeRect.fromRect(
+                                                    Offset.zero & const Size(40, 40), // Position arbitraire
+                                                    Offset.zero & overlay.size),
+                                                items: menuItems,
+                                              );
+                                              if (result != null) {
+                                                if (result == 'delete') {
+                                                  LocationService().deleteLocation(location.id!).then((value) {
+                                                    setState(() {
+                                                      groupLocations = LocationService().fetchGroupLocations(int.parse(widget.groupId));
+                                                    });
+                                                  });
+                                                }
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Builder(builder: (context) {
+                                            var wsLength = widget.wsGroupVotes!
+                                                .value
+                                                .where((vote) => vote.locationId == location.id)
+                                                .length;
+                                            var dbLength =
+                                            votes.data!.isNotEmpty ? votes.data!.where((vote) => vote.locationId == location.id).length : 0;
+                                            return Text('(${widget.wsGroupVotes!.value.isEmpty ? dbLength : wsLength} votes)',
+                                                style: Theme
+                                                    .of(context)
+                                                    .textTheme
+                                                    .bodySmall);
+                                          })
+                                        ],
+                                      ),
+                                      subtitle: Builder(builder: (context) {
+                                        var wsLength = widget.wsGroupVotes!
+                                            .value
+                                            .where((vote) => vote.locationId == location.id)
+                                            .length;
+                                        var wsTotal = widget.wsGroupVotes!.value.length;
+                                        var dbLength =
+                                        votes.data!.isNotEmpty ? votes.data!.where((vote) => vote.locationId == location.id).length : 0;
+                                        var dbTotal = votes.data!.isNotEmpty ? votes.data!.length : 0;
+                                        var progress = widget.wsGroupVotes!.value.isEmpty ? dbLength / dbTotal : wsLength / wsTotal;
+
+                                        return LinearProgressIndicator(
+                                          value: progress.isNaN ? 0 : progress,
+                                        );
+                                      }),
+                                      leading: Radio(
+                                        value: location.id!,
+                                        groupValue: _userVote,
+                                        onChanged: (value) {
+                                          if (value != null) {
+                                            handleVoteChange(value);
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  }),
+                          ],
+                        )
+                      ],
+                    ),
+                  );
+                }),
+        ],
+      ),
+    )
+        : Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme
+            .of(context)
+            .colorScheme
+            .outline
+            .withOpacity(0.5)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                "${widget.nbParticipants} personnes participent.",
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .bodySmall,
+              ),
+              const SizedBox(width: 4),
+              // display icon if _userIsParticipating is true
+              if (_userIsParticipating)
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 16,
+                ),
+            ],
+          ),
+          const SizedBox(width: 8),
+          Row(
+            children: [
+              IconButton(
+                onPressed: _toggleExtended,
+                icon: const Icon(Icons.expand_more),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

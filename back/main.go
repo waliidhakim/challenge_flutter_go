@@ -22,9 +22,7 @@ func init() {
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
-
-	// Assurez-vous que le modèle Notification est migré
-	db.AutoMigrate(&models.Notification{})
+	initializers.InitDbLogger(db)
 }
 
 func main() {
@@ -75,11 +73,6 @@ func main() {
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
-	// Notification Routes
-	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
-	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
-	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
-
 	// GroupChatActivity Routes
 	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)
 	router.GET("/group-chat-activity/:id", middlewares.RequireAuth, controllers.ActivityParticipationGetById)
@@ -106,6 +99,12 @@ func main() {
 	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
 	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
 	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
+
+	// Ajouter les routes de logs
+	router.GET("/logs", middlewares.RequireAuth, controllers.GetLogs)
+	router.GET("/logs/level/:level", middlewares.RequireAuth, controllers.GetLogsByLevel)
+	router.GET("/logs/:id", middlewares.RequireAuth, controllers.GetLogByID)
+
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)

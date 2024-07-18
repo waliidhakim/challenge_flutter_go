@@ -97,7 +97,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               },
             );
           }
-          return Text("default");
+          return const CircularProgressIndicator();
         },
       ),
       bottomNavigationBar: const Navbar(),

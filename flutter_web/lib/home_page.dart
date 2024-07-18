@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web/log_page.dart';
 import 'package:flutter_web/stats_page.dart';
 import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';
@@ -65,6 +66,14 @@ class HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (context) => const GroupChatCrudPage()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.article, color: Colors.lightBlue),
+              title: const Text('Logs'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const LogPage()));
               },
             ),
             ListTile(

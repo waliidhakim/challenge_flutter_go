@@ -130,13 +130,13 @@ func createGroupChatActivityParticipations(db *gorm.DB) {
 
 		{
 			UserID:            groupOwner.ID,
-			GroupChatID:       group1.ID,
+			GroupChatID:       int(group1.ID),
 			ParticipationDate: todayAt18h,
 		},
 
 		{
 			UserID:            user1.ID,
-			GroupChatID:       group1.ID,
+			GroupChatID:       int(group1.ID),
 			ParticipationDate: todayAt18h,
 		},
 	}

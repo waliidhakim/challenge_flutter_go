@@ -4,6 +4,7 @@ import (
 	"backend/controllers"
 	"backend/initializers"
 	"backend/middlewares"
+	"backend/models"
 	"backend/services"
 	"net/http"
 	"os"
@@ -21,6 +22,9 @@ func init() {
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
+
+	// Assurez-vous que le modèle Notification est migré
+	db.AutoMigrate(&models.Notification{})
 }
 
 func main() {
@@ -70,6 +74,11 @@ func main() {
 	router.GET("/group-chat/:id/messages", middlewares.RequireAuth, controllers.GroupChatGetMessages)
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
+
+	// Notification Routes
+	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
+	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
+	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
 
 	// GroupChatActivity Routes
 	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)

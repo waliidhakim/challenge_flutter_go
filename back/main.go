@@ -4,7 +4,6 @@ import (
 	"backend/controllers"
 	"backend/initializers"
 	"backend/middlewares"
-	"backend/models"
 	"backend/services"
 	"net/http"
 	"os"
@@ -99,6 +98,11 @@ func main() {
 	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
 	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
 	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
+
+	// Notification Routes
+	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
+	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
+	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
 
 	// Ajouter les routes de logs
 	router.GET("/logs", middlewares.RequireAuth, controllers.GetLogs)

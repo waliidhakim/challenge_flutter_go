@@ -4,7 +4,6 @@ import (
 	"backend/controllers"
 	"backend/initializers"
 	"backend/middlewares"
-	"backend/models"
 	"backend/services"
 	"net/http"
 	"os"
@@ -19,12 +18,11 @@ var db *gorm.DB
 
 func init() {
 	initializers.InitLogger()
+
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
-
-	// Assurez-vous que le modèle Notification est migré
-	db.AutoMigrate(&models.Notification{})
+	initializers.InitDbLogger(db)
 }
 
 func main() {
@@ -106,6 +104,12 @@ func main() {
 	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
 	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
 	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
+
+	// Ajouter les routes de logs
+	router.GET("/logs", middlewares.RequireAuth, controllers.GetLogs)
+	router.GET("/logs/level/:level", middlewares.RequireAuth, controllers.GetLogsByLevel)
+	router.GET("/logs/:id", middlewares.RequireAuth, controllers.GetLogByID)
+
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)

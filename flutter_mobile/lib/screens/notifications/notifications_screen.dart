@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/models/notification.dart';
+import 'package:flutter_mobile/services/notification_service.dart';
+import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_mobile/widgets/navbar.dart';
 import 'package:intl/intl.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
 
   static String routeName = '/notifications';
@@ -13,9 +16,25 @@ class NotificationScreen extends StatelessWidget {
   }
 
   @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  late Future<List<Notif>> notifications;
+
+  @override
+  void initState() {
+    super.initState();
+    final userId = sharedPrefs.userId;
+    notifications = NotificationService().fetchNotificationUser(int.parse(userId));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<NotificationItem> notifications = [
-      NotificationItem(
+    /*
+    final List<Notification> notifications = [
+
+      Notification(
         title: "Message from John",
         description: "Description de la notification 1",
         timestamp: DateTime.now().subtract(const Duration(hours: 1)),
@@ -40,69 +59,48 @@ class NotificationScreen extends StatelessWidget {
         groupImageUrl: "https://via.placeholder.com/150", // Replace with actual image URLs
       ),
     ];
-
+*/
     return Scaffold(
       appBar: AppBar(title: const Text("Notifications")),
-      body: ListView.builder(
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          final notification = notifications[index];
-          final formattedTime = DateFormat('HH:mm').format(notification.timestamp);
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-              side: const BorderSide(color: Colors.grey, width: 1),
-            ),
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: InkWell(
-              onTap: () {
-                // Handle notification tap
+      body: FutureBuilder<List<Notif>>(
+        future: notifications,
+        builder: (BuildContext context, AsyncSnapshot<List<Notif>>snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                // int unreadCount = unreadMessagesMap[group.id.toString()] ?? 0;
+                Notif notification = snapshot.data![index];
+                final formattedTime = DateFormat('HH:mm').format(notification.datetime);
+
+                return  ListTile(
+                  contentPadding: const EdgeInsets.all(8),
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(notification.icon),
+                  ),
+                  title: Text(notification.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("${notification.content}"),
+                    ],
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(formattedTime, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text("${notification.groupName}", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                );
               },
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(8),
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(notification.groupImageUrl),
-                ),
-                title: Text(notification.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("From: ${notification.senderName}"),
-                    Text(notification.description),
-                  ],
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(formattedTime, style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    Text("Group: ${notification.groupName}", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
-                ),
-              ),
-            ),
-          );
+            );
+          }
+          return Text("default");
         },
       ),
       bottomNavigationBar: const Navbar(),
     );
   }
-}
-
-class NotificationItem {
-  final String title;
-  final String description;
-  final DateTime timestamp;
-  final String groupName;
-  final String senderName;
-  final String groupImageUrl;
-
-  NotificationItem({
-    required this.title,
-    required this.description,
-    required this.timestamp,
-    required this.groupName,
-    required this.senderName,
-    required this.groupImageUrl,
-  });
 }

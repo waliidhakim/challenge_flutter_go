@@ -4,71 +4,53 @@ import (
 	"backend/initializers"
 	"backend/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// CreateNotification handles creating a new notification
-func CreateNotification(c *gin.Context) {
-	var input models.Notification
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	notification := models.Notification{
-		Title:         input.Title,
-		Description:   input.Description,
-		Timestamp:     input.Timestamp,
-		GroupName:     input.GroupName,
-		SenderName:    input.SenderName,
-		GroupImageUrl: input.GroupImageUrl,
-		UserID:        input.UserID,
-		GroupChatID:   input.GroupChatID,
-		MessageID:     input.MessageID,
-	}
-
-	result := initializers.DB.Create(&notification)
-	if result.Error != nil {
-		initializers.Logger.Debugf("Notification creations erroor %v", result.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create notification"})
-		return
-	}
-
-	c.JSON(http.StatusOK, notification)
+func NotificationGet(context *gin.Context) {
+	var notifications []models.Notification
+	initializers.DB.Find(&notifications)
+	context.JSON(http.StatusOK, notifications)
 }
 
-// GetNotifications handles retrieving notifications for a user
-func GetNotifications(c *gin.Context) {
-	userID, exists := c.Get("userId")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
+func NotificationGetByUserId(context *gin.Context) {
+	UserID, err := context.Get("userId")
+	if err != true {
+		initializers.Logger.Errorln("POST ActivityParticipation : Error getting user id from context")
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	var notifications []models.Notification
-	result := initializers.DB.Where("user_id = ?", userID).Find(&notifications)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
-		return
-	}
-
-	c.JSON(http.StatusOK, notifications)
+	initializers.DB.Where("user_id = ?", UserID).Find(&notifications)
+	context.JSON(http.StatusOK, notifications)
 }
 
-func GetNotificationById(c *gin.Context) {
-	// userID, exists := c.Get("userId")
-	// if !exists {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not provided"})
-	// 	return
-	// }
-
-	var notifications []models.Notification
-	// result := initializers.DB.Where("user_id = ?", userID).Find(&notifications)
-	// if result.Error != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
-	// 	return
-	// }
-
-	c.JSON(http.StatusOK, notifications)
+func NotificationPost(context *gin.Context) {
+	var body struct {
+		Title   string
+		Content string
+		UserID  uint
+		GroupId int
+	}
+	err := context.Bind(&body)
+	if err != nil {
+		initializers.Logger.Errorln(err)
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Error while binding request"})
+	}
+	var group models.GroupChat
+	initializers.DB.First(&group, body.GroupId)
+	notification := &models.Notification{
+		Title:            body.Title,
+		NotificationIcon: group.ImageUrl,
+		DateTime:         time.Now(),
+		GroupName:        group.Name,
+		Content:          body.Content,
+		UserID:           body.UserID,
+		GroupId:          body.GroupId,
+	}
+	initializers.DB.Create(&notification)
+	context.JSON(http.StatusCreated, notification)
 }

@@ -76,9 +76,9 @@ func main() {
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
 	// Notification Routes
-	router.GET("/notifications/:id", middlewares.RequireAuth, controllers.GetNotificationById)
-	router.GET("/notifications/", middlewares.RequireAuth, controllers.GetNotifications)
-	router.POST("/notifications", middlewares.RequireAuth, controllers.CreateNotification)
+	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
+	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
+	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
 
 	// GroupChatActivity Routes
 	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)

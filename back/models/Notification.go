@@ -12,7 +12,7 @@ type Notification struct {
 	NotificationIcon string
 	DateTime         time.Time
 	GroupName        string
-	Content          string
-	UserID           uint `gorm:"foreignKey:UserID"`
-	GroupId          int  `gorm:"foreignKey:GroupID"`
+	Content          string `gorm:"default:null"`
+	UserID           uint   `gorm:"foreignKey:UserID"`
+	GroupId          int    `gorm:"foreignKey:GroupID"`
 }

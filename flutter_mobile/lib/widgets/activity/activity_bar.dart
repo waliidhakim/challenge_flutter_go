@@ -248,7 +248,7 @@ class _ActivityBarState extends State<ActivityBar> {
                                                 const SizedBox(width: 8),
                                                 Builder(builder: (context) {
                                                   var wsLength = widget.wsGroupVotes!.value.where((vote) => vote.locationId == location.id).length;
-                                                  var dbLength = votes.data!.where((vote) => vote.locationId == location.id).length;
+                                                  var dbLength =  votes.data!.isNotEmpty ? votes.data!.where((vote) => vote.locationId == location.id).length : 0;
                                                   return Text('(${widget.wsGroupVotes!.value.isEmpty ? dbLength : wsLength} votes)',
                                                       style: Theme.of(context).textTheme.bodySmall);
                                                 })
@@ -257,12 +257,12 @@ class _ActivityBarState extends State<ActivityBar> {
                                             subtitle: Builder(builder: (context) {
                                               var wsLength = widget.wsGroupVotes!.value.where((vote) => vote.locationId == location.id).length;
                                               var wsTotal = widget.wsGroupVotes!.value.length;
-                                              var dbLength = votes.data!.where((vote) => vote.locationId == location.id).length;
-                                              var dbTotal = votes.data!.length;
+                                              var dbLength = votes.data!.isNotEmpty ? votes.data!.where((vote) => vote.locationId == location.id).length : 0;
+                                              var dbTotal = votes.data!.isNotEmpty ? votes.data!.length : 0;
                                               var progress = widget.wsGroupVotes!.value.isEmpty ? dbLength / dbTotal : wsLength / wsTotal;
 
                                               return LinearProgressIndicator(
-                                                value: progress,
+                                                value: progress.isNaN ? 0 : progress,
                                               );
                                             }),
                                             leading: Radio(

@@ -5,6 +5,7 @@ import 'package:flutter_web/models/group_chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GroupChatService {
+  static String? apiUrl = dotenv.env['API_URL'];
   static Future<List<GroupChat>> fetchGroupChats() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt');
@@ -13,7 +14,6 @@ class GroupChatService {
       token = token.substring(1, token.length - 1); // Supprime les guillemets
     }
 
-    String? apiUrl = dotenv.env['API_URL'];
     final response = await http.get(
       Uri.parse("$apiUrl/group-chat"),
       headers: {
@@ -38,7 +38,7 @@ class GroupChatService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt');
     final response = await http.get(
-      Uri.parse('http://localhost:4000/group-chat/$id'),
+      Uri.parse('$apiUrl/group-chat/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': "Bearer $token"

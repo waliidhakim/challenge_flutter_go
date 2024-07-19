@@ -15,7 +15,7 @@ class UserService {
     }
 
     final response = await http.get(
-      Uri.parse('${apiUrl}/user?page=$page&limit=$limit'),
+      Uri.parse('$apiUrl/user?page=$page&limit=$limit'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': "Bearer $token"
@@ -58,12 +58,14 @@ class UserService {
   }
 
   static Future<Map<String, dynamic>> fetchUserDetails(int id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
     String? apiUrl = dotenv.env['API_URL'];
     final response = await http.get(
       Uri.parse('$apiUrl/user/$id'),
       headers: {
         'Content-Type': 'application/json',
-        // Ajoutez des en-têtes supplémentaires si nécessaire, comme l'Authorization
+        'Authorization': "Bearer $token"
       },
     );
 
@@ -83,10 +85,13 @@ class UserService {
     String phone,
   ) async {
     String? apiUrl = dotenv.env['API_URL'];
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
     final response = await http.post(
       Uri.parse('$apiUrl/user'),
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': "Bearer $token"
       },
       body: jsonEncode({
         'Firstname': firstname,

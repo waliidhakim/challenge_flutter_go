@@ -48,8 +48,8 @@ class _LogPageState extends State<LogPage> {
         ? Colors.blue.withOpacity(0.1)
         : Colors.red.withOpacity(0.1);
     return DataRow(
-      color: MaterialStateProperty.resolveWith<Color?>(
-        (Set<MaterialState> states) {
+      color: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
           return rowColor; // Use the color.
         },
       ),

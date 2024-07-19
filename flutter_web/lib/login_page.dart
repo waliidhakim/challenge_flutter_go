@@ -1,5 +1,6 @@
 import 'dart:html';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_web/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String _errorMessage = '';
+  static String? apiUrl = dotenv.env['API_URL'];
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
@@ -29,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       var response = await http.post(
-        Uri.http('localhost:4000', '/user/admin/login'),
+        Uri.parse("$apiUrl/user/admin/login"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

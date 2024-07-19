@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web/log_page.dart';
 import 'package:flutter_web/stats_page.dart';
 import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';

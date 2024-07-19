@@ -15,7 +15,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 // @title Swagger Example API
 // @description This is a sample server for a pet store.
 // @version 1.0
@@ -25,8 +24,6 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-
-
 
 var db *gorm.DB
 
@@ -91,7 +88,7 @@ func main() {
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
 
-	router.POST("/send-notification", controllers.SendNotification)
+	// router.POST("/send-notification", controllers.SendNotification)
 
 	// Feature Flipping fonctionnalité
 	// Feature Management Routes
@@ -129,6 +126,11 @@ func main() {
 	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
 	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
 	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
+
+	// Notification Routes
+	router.GET("/notifications", middlewares.RequireAuth, controllers.NotificationGet)
+	router.GET("/notifications/:user", middlewares.RequireAuth, controllers.NotificationGetByUserId)
+	router.POST("/notifications", middlewares.RequireAuth, controllers.NotificationPost)
 
 	// Ajouter les routes de logs
 	router.GET("/logs", middlewares.RequireAuth, controllers.GetLogs)

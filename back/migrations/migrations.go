@@ -23,6 +23,7 @@ func main() {
 		&models.GroupChatActivityLocation{},
 		&models.GroupChatActivityLocationVote{},
 		&models.Setting{},
+		&models.Notification{},
 		&models.LogModel{},
 	)
 	if err != nil {

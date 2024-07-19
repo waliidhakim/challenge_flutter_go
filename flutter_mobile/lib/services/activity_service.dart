@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/models/activity.dart';
 import 'package:flutter_mobile/models/settings.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
@@ -6,8 +7,9 @@ import 'package:http/http.dart' as http;
 
 class ActivityService {
   Future<List<Activity>> fetchActivities() async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity'),
+      Uri.parse('$apiUrl/group-chat-activity'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -26,9 +28,10 @@ class ActivityService {
   }
 
   Future<List<Activity>> fetchGroupChatActivities(groupChatId) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
       Uri.parse(
-          'http://10.0.2.2:4000/group-chat-activity/group-chat/$groupChatId/today-participation'),
+          '$apiUrl/group-chat-activity/group-chat/$groupChatId/today-participation'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
         },
@@ -44,9 +47,10 @@ class ActivityService {
   }
 
   Future<Activity> fetchUserGroupChatActivity(groupChatId) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
       Uri.parse(
-          'http://10.0.2.2:4000/group-chat-activity/group-chat/$groupChatId/my-today-participation'),
+          '$apiUrl/group-chat-activity/group-chat/$groupChatId/my-today-participation'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -60,8 +64,9 @@ class ActivityService {
   }
 
   Future<bool> deleteGroupChatActivity(int id) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity/$id'),
+      Uri.parse('$apiUrl/group-chat-activity/$id'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -73,8 +78,9 @@ class ActivityService {
   Future<Activity> createGroupChatActivity(
       int groupChatId, DateTime datetime) async {
     try {
+      final apiUrl = AppSettings().apiUrl;
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:4000/group-chat-activity'),
+        Uri.parse('$apiUrl/group-chat-activity'),
         headers: {
           'Authorization': 'Bearer ${sharedPrefs.token}',
           'Content-Type': 'application/json',

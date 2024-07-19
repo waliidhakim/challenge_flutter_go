@@ -1,12 +1,14 @@
 import 'dart:convert';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/models/settings.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:http/http.dart' as http;
 
 class SettingsService {
   Future<List<Setting>> fetchGroupChats() async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/settings'),
+      Uri.parse('$apiUrl/settings'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -25,8 +27,9 @@ class SettingsService {
   }
 
   Future<Setting> fetchUserSettings() async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/settings/user'),
+      Uri.parse('$apiUrl/settings/user'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -40,8 +43,9 @@ class SettingsService {
   }
 
   Future updateSettings(Setting settings) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.patch(
-      Uri.parse('http://10.0.2.2:4000/settings/user'),
+      Uri.parse('$apiUrl/settings/user'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
         'Content-Type': 'application/json',
@@ -56,8 +60,9 @@ class SettingsService {
 
 
   Future<bool> deleteSettings(int id) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/settings/$id'),
+      Uri.parse('$apiUrl/settings/$id'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_mobile/main.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketService {
@@ -18,8 +19,9 @@ class WebSocketService {
   });
 
   void connect() {
+    final wsUrl = AppSettings().wsUrl;
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://10.0.2.2:4000/ws'),
+      Uri.parse('$wsUrl/ws'),
     );
 
     _channel.stream.listen((message) {

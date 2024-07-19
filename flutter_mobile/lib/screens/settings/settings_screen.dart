@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobile/models/settings.dart';
 import 'package:flutter_mobile/screens/home/notifications/notification_selection.dart';
+import 'package:flutter_mobile/screens/login/login_screen.dart';
 import 'package:flutter_mobile/services/settings_service.dart';
+import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/widgets/navbar.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,6 +39,19 @@ class SettingsScreen extends StatelessWidget {
               SizedBox(height: 16),
               NotificationSelection(
                 onChange: handleChange,
+              ),
+              SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  sharedPrefs.token = "";
+                  LoginScreen.navigateTo(context);
+                },
+                child: const Text('Logout'),
+                // Red danger button using Material theme of context
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.red),
+                  foregroundColor: MaterialStateProperty.all(Colors.white),
+                ),
               ),
             ],
           ),

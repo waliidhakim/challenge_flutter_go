@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
@@ -68,9 +69,10 @@ class _EditGroupChatScreenState extends State<EditGroupChatScreen> {
   Future<void> _updateGroupChat() async {
     if (_formKey.currentState!.validate()) {
       final token = sharedPrefs.token;
+      final apiUrl = AppSettings().apiUrl;
       var request = http.MultipartRequest(
         'PATCH',
-        Uri.parse('http://10.0.2.2:4000/group-chat/infos/${widget.groupId}'),
+        Uri.parse('$apiUrl/group-chat/infos/${widget.groupId}'),
       );
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['name'] = _nameController.text;

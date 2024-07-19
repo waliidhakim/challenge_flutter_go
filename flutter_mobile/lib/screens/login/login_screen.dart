@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/screens/home/home_screen.dart';
 import 'package:flutter_mobile/utils/screen_arguments.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
@@ -35,8 +36,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> register(BuildContext context) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.post(
-        Uri.parse('http://10.0.2.2:4000/user/register'),
+        Uri.parse('$apiUrl/user/register'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode(
             {'phone': phone.toString(), 'password': password.toString()}));
@@ -113,8 +115,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<String> apiLogin() async {
     try {
+      final apiUrl = AppSettings().apiUrl;
       final response =
-          await http.post(Uri.parse('http://10.0.2.2:4000/user/login'),
+          await http.post(Uri.parse('$apiUrl/user/login'),
               headers: {'Content-Type': 'application/json; charset=UTF-8'},
               body: jsonEncode({
                 'phone': phone.toString(),
@@ -132,8 +135,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login(BuildContext context) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:4000/user/login'),
+      Uri.parse('$apiUrl/user/login'),
       headers: {'Content-Type': 'application/json; charset=UTF-8'},
       body: jsonEncode({
         'phone': phone.toString(),

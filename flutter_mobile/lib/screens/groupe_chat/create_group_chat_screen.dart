@@ -1,7 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+<<<<<<< Updated upstream
 import 'package:flutter_mobile/utils/shared_prefs.dart'; // Assurez-vous que le chemin d'accès au package est correct
+=======
+import 'package:flutter_mobile/main.dart';
+import 'package:flutter_mobile/utils/shared_prefs.dart';
+>>>>>>> Stashed changes
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -52,10 +57,10 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   Future<void> createGroupChat() async {
     final token =
         sharedPrefs.token; // Récupérer le token depuis les shared preferences
-
+    final apiUrl = AppSettings().apiUrl;
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://10.0.2.2:4000/group-chat'),
+      Uri.parse('$apiUrl/group-chat'),
     );
     request.headers['Authorization'] = 'Bearer $token';
     request.fields['Name'] = name;

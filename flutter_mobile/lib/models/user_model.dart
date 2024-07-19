@@ -20,7 +20,6 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    print("User JSON: $json");
     return User(
       id: json['ID'],
       firstname: json['Firstname'] ?? '', // Gérer les valeurs null

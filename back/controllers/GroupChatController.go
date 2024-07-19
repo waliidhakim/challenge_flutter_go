@@ -32,6 +32,7 @@ func GroupChatGet(context *gin.Context) {
 
 }
 
+<<<<<<< Updated upstream
 // GroupChatGetAll godoc
 // @Summary Get all group chats
 // @Description Retrieves all group chats from the database
@@ -64,6 +65,8 @@ func GroupChatGetAll(context *gin.Context) {
 // @Failure 403 {string} string "Feature not available"
 // @Failure 500 {string} string "Internal server error"
 // @Router /group-chat [post]
+=======
+>>>>>>> Stashed changes
 func GroupChatPost(context *gin.Context) {
 
 	isActive, errFeatureFlipping := utils.IsFeatureActive(initializers.DB, "GroupChatCreation")
@@ -218,8 +221,22 @@ func GroupChatUpdate(context *gin.Context) {
 		return
 	}
 
+<<<<<<< Updated upstream
 	if err := utils.IsGroupChatOwner(context, groupChatId, userID); err != nil {
 		context.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+=======
+	groupChat := &models.GroupChat{}
+	initializers.DB.First(&groupChat, grouChatId)
+
+	// Mise à jour du GroupChat
+	update := initializers.DB.Model(&models.GroupChat{}).Where("id = ?", grouChatId).Updates(models.GroupChat{
+		Name:        updateData.Name,
+		Activity:    updateData.Activity,
+		CatchPhrase: updateData.CatchPhrase,
+	})
+	if update.Error != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update group chat"})
+>>>>>>> Stashed changes
 		return
 	}
 
@@ -233,8 +250,55 @@ func GroupChatUpdate(context *gin.Context) {
 		fmt.Println(err)
 	}
 
+<<<<<<< Updated upstream
 	if err := utils.AddNewMembers(context, uint(groupChatIdAsUint), updateData.NewMembers); err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+=======
+	// Ajouter les nouveaux membres
+	for _, phone := range updateData.NewMembers {
+		var user models.User
+		if err := initializers.DB.Where("phone = ?", phone).First(&user).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				context.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("User with phone %s not found", phone)})
+				return
+			}
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			return
+		}
+
+		groupChatUser := models.GroupChatUser{
+			GroupChatID: grouChatIdAsUint,
+			UserID:      user.ID,
+			Role:        "member",
+		}
+		if err := initializers.DB.Create(&groupChatUser).Error; err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add member to group chat"})
+			return
+		}
+		fmt.Println(groupChat)
+		fmt.Println(groupChat.Name)
+		fmt.Println(groupChat.ImageUrl)
+		notif := models.Notification{
+			UserID:           user.ID,
+			GroupId:          int(grouChatIdAsUint),
+			Title:            "Vous avez été ajouté à " + groupChat.Name,
+			NotificationIcon: groupChat.ImageUrl,
+			DateTime:         time.Now(),
+			GroupName:        groupChat.Name,
+		}
+		if err := initializers.DB.Create(&notif).Error; err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create notification"})
+			initializers.Logger.Errorln("Failed to create notification:", err)
+			continue
+		}
+		fmt.Println(notif)
+		fmt.Println("Notification created")
+	}
+
+	// Renvoyer la réponse
+	if update.RowsAffected == 0 {
+		context.JSON(http.StatusNotFound, gin.H{"error": "No group chat found with the given ID"})
+>>>>>>> Stashed changes
 		return
 	}
 

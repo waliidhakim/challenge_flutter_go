@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/models/activity.dart';
 import 'package:flutter_mobile/models/location.dart';
 import 'package:flutter_mobile/models/settings.dart';
@@ -7,8 +8,9 @@ import 'package:http/http.dart' as http;
 
 class LocationService {
   Future<List<Location>> fetchGroupLocations(int groupChatId) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity-location/group-chat/$groupChatId'),
+      Uri.parse('$apiUrl/group-chat-activity-location/group-chat/$groupChatId'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -25,7 +27,8 @@ class LocationService {
   }
 
   Future<Location> createLocation(int groupChatId, String name, String address) async {
-    final response = await http.post(Uri.parse("http://10.0.2.2:4000/group-chat-activity-location"),
+    final apiUrl = AppSettings().apiUrl;
+    final response = await http.post(Uri.parse("$apiUrl/group-chat-activity-location"),
         headers: {
           'Authorization': 'Bearer ${sharedPrefs.token}',
           'Content-Type': 'application/json',
@@ -44,8 +47,9 @@ class LocationService {
   }
 
   Future<void> deleteLocation(int locationId) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity-location/$locationId'),
+      Uri.parse('$apiUrl/group-chat-activity-location/$locationId'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },

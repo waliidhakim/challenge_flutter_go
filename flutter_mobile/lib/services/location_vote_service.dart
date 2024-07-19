@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/models/activity.dart';
 import 'package:flutter_mobile/models/location.dart';
 import 'package:flutter_mobile/models/location_vote.dart';
@@ -8,8 +9,9 @@ import 'package:http/http.dart' as http;
 
 class LocationVoteService {
   Future<List<LocationVote>> fetchGroupLocationVotes(int groupChatId) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity-location-vote/group-chat/$groupChatId/today'),
+      Uri.parse('$apiUrl/group-chat-activity-location-vote/group-chat/$groupChatId/today'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -26,10 +28,9 @@ class LocationVoteService {
   }
 
   Future<void> deleteVote(int locationId) async {
-    print("deleted:");
-    print(locationId);
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity-location-vote/user-location/$locationId/today'),
+      Uri.parse('$apiUrl/group-chat-activity-location-vote/user-location/$locationId/today'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -37,8 +38,9 @@ class LocationVoteService {
   }
 
   Future<void> deleteVoteInGroup(int groupId) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/group-chat-activity-location-vote/user-location/group/$groupId/today'),
+      Uri.parse('$apiUrl/group-chat-activity-location-vote/user-location/group/$groupId/today'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -50,7 +52,8 @@ class LocationVoteService {
   }
 
   Future<LocationVote> createVote(int locationId, int groupId) async {
-    final response = await http.post(Uri.parse('http://10.0.2.2:4000/group-chat-activity-location-vote'),
+    final apiUrl = AppSettings().apiUrl;
+    final response = await http.post(Uri.parse('$apiUrl/group-chat-activity-location-vote'),
         headers: {
           'Authorization': 'Bearer ${sharedPrefs.token}',
           'Content-Type': 'application/json',

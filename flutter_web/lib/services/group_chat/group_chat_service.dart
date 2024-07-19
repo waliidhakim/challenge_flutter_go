@@ -56,7 +56,7 @@ class GroupChatService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt');
     final response = await http.patch(
-      Uri.parse('http://localhost:4000/group-chat/$id'),
+      Uri.parse('$apiUrl/group-chat/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': "Bearer $token"

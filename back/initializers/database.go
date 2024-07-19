@@ -24,6 +24,6 @@ func DbConnect() {
 	if err != nil {
 		panic("Unable to connect to the database")
 	}
-	Logger.Infoln("Successfully connected to the database")
+	Logger.Infoln("Successfully connected to the database !!")
 
 }

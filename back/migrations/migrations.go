@@ -6,8 +6,8 @@ import (
 )
 
 func init() {
-	initializers.LoadEnvVars()
 	initializers.InitLogger()
+	initializers.LoadEnvVars()
 	initializers.DbConnect()
 }
 
@@ -23,6 +23,7 @@ func main() {
 		&models.GroupChatActivityLocation{},
 		&models.GroupChatActivityLocationVote{},
 		&models.Setting{},
+		&models.LogModel{},
 	)
 	if err != nil {
 		initializers.Logger.Errorln("Error while migrating User")

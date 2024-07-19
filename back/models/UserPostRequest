@@ -1,9 +1,0 @@
-package models
-
-type UserPostRequest struct {
-	Firstname string `json:"firstname" binding:"required"`
-	Lastname  string `json:"lastname" binding:"required"`
-	Username  string `json:"username" binding:"required"`
-	Password  string `json:"password" binding:"required"`
-	Phone     string `json:"phone" binding:"required"`
-}

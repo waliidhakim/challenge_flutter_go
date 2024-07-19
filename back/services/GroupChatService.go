@@ -5,10 +5,20 @@ import (
 	"backend/models"
 	"backend/utils"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+// GroupChatGet godoc
+// @Summary Get group chats
+// @Description Retrieves group chats associated with the authenticated user or all if admin
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} GroupChat "List of group chats"
+// @Router /group-chat [get]
 func GetGroupChats(context *gin.Context) []models.GroupChat {
 	var groupChats []models.GroupChat
 	userId, _ := context.Get("userId")
@@ -25,6 +35,18 @@ func GetGroupChats(context *gin.Context) []models.GroupChat {
 			Group("group_chats.id"). // Utiliser le groupement pour éviter les doublons
 			Find(&groupChats)
 	}
+
+	return groupChats
+}
+
+func GetAllGroupChats(context *gin.Context) []models.GroupChat {
+	var groupChats []models.GroupChat
+
+	// Récupérer les utilisateurs avec pagination
+	initializers.DB.Find(&groupChats)
+
+	// Renvoyer les utilisateurs avec le statut HTTP 200
+	context.JSON(http.StatusOK, groupChats)
 
 	return groupChats
 }

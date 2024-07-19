@@ -54,6 +54,7 @@ func ClearTables(db *gorm.DB) {
 	db.Exec("DELETE FROM group_chat_users")
 	db.Exec("DELETE FROM group_chats")
 	db.Exec("DELETE FROM users")
+	db.Exec("DELETE FROM log_models")
 }
 
 func Load(db *gorm.DB) {
@@ -103,6 +104,38 @@ func createGroupChats(db *gorm.DB) {
 				{UserID: user2.ID, Role: "member"},
 			},
 		},
+
+		{Name: "Group 2 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sortie",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 3 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sport",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 4 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sport",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 5 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Balade",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
 	}
 
 	for _, groupChat := range groupChats {
@@ -132,13 +165,13 @@ func createGroupChatActivityParticipations(db *gorm.DB) {
 
 		{
 			UserID:            groupOwner.ID,
-			GroupChatID:       group1.ID,
+			GroupChatID:       int(group1.ID),
 			ParticipationDate: todayAt18h,
 		},
 
 		{
 			UserID:            user1.ID,
-			GroupChatID:       group1.ID,
+			GroupChatID:       int(group1.ID),
 			ParticipationDate: todayAt18h,
 		},
 	}

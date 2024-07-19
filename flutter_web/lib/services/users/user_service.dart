@@ -5,9 +5,9 @@ import 'package:flutter_web/models/users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  static Future<List<User>> fetchUsers({int page = 1, int limit = 3}) async {
-    String? apiUrl = dotenv.env['API_URL'];
+  static String? apiUrl = dotenv.env['API_URL'];
 
+  static Future<List<User>> fetchUsers({int page = 1, int limit = 3}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt');
     if (token != null && token.startsWith('"') && token.endsWith('"')) {
@@ -135,5 +135,27 @@ class UserService {
     );
 
     return response.statusCode == 200;
+  }
+
+  static Future<Map<String, dynamic>> fetchUserStats() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt');
+
+    if (token != null && token.startsWith('"') && token.endsWith('"')) {
+      token = token.substring(1, token.length - 1); // Supprime les guillemets
+    }
+    final response = await http.get(
+      Uri.parse('$apiUrl/users/stats'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': "Bearer $token"
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load user stats');
+    }
   }
 }

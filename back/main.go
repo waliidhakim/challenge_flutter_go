@@ -5,7 +5,6 @@ import (
 	"backend/initializers"
 	"backend/middlewares"
 	"backend/services"
-	"backend/utils"
 	"net/http"
 	"os"
 	"time"
@@ -16,15 +15,28 @@ import (
 	"gorm.io/gorm"
 )
 
+
+// @title Swagger Example API
+// @description This is a sample server for a pet store.
+// @version 1.0
+// @host localhost:4000
+// @BasePath /
+// @schemes http https
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
+
+
 var db *gorm.DB
 
 func init() {
 	initializers.InitLogger()
-	initializers.InitDailyLogger()
+
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
-	//controllers.InitFirebase()
+	initializers.InitDbLogger(db)
 }
 
 func main() {
@@ -39,17 +51,9 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// @Summary Ping example
-	// @Schemes
-	// @Description Do ping
-	// @Tags Example
-	// @Accept json
-	// @Produce json
-	// @Success 200 {object} map[string]interface{}
-	// @Router / [get]
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"message": "poooooooooooooooooog",
 		})
 	})
 
@@ -62,6 +66,8 @@ func main() {
 	router.POST("/user/login", controllers.UserLogin)
 	router.POST("/user/admin/login", controllers.AdminLogin)
 	router.GET("/users/:id/group_chat_activity_participations", middlewares.RequireAuth, controllers.UserGetGroupChatActivityParticipations)
+	router.GET("/users/stats", middlewares.RequireAuth, controllers.GetUserStats)
+
 	// User settings
 	router.GET("/settings", middlewares.RequireAuth, controllers.SettingGet)
 	router.GET("/settings/user/:id", middlewares.RequireAuth, controllers.SettingGetByUserId)
@@ -76,6 +82,7 @@ func main() {
 
 	// GroupChat Routes
 	router.GET("/group-chat", middlewares.RequireAuth, controllers.GroupChatGet)
+	router.GET("/group-chat/all", middlewares.RequireAuth, controllers.GroupChatGetAll)
 	router.GET("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatGetById)
 	router.POST("/group-chat", middlewares.RequireAuth, controllers.GroupChatPost)
 	router.PATCH("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatUpdate)
@@ -95,14 +102,6 @@ func main() {
 	router.DELETE("/features/:id", middlewares.RequireAuth, controllers.FeatureDelete)
 
 	// router.POST("/send-notification", controllers.SendNotification)
-
-	// Feature Flipping fonctionnalité
-	// Feature Management Routes
-	router.GET("/features", middlewares.RequireAuth, controllers.FeaturesList)
-	router.POST("/features", middlewares.RequireAuth, controllers.FeatureCreate)
-	router.GET("/features/:id", middlewares.RequireAuth, controllers.FeatureGet)
-	router.PATCH("/features/:id", middlewares.RequireAuth, controllers.FeatureUpdate)
-	router.DELETE("/features/:id", middlewares.RequireAuth, controllers.FeatureDelete)
 
 	// GroupChatActivity Routes
 	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)
@@ -130,6 +129,12 @@ func main() {
 	router.DELETE("/group-chat-activity-location-vote/user-location/:location_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByUserAndLocationIdToday)
 	router.DELETE("/group-chat-activity-location-vote/user-location/group/:group_id/today", middlewares.RequireAuth, controllers.ActivityLocationVoteDeleteByGroupAndUser)
 	router.DELETE("/group-chat-activity-location-vote/:id", middlewares.RequireAuth, controllers.ActivityLocationVoteDelete)
+
+	// Ajouter les routes de logs
+	router.GET("/logs", middlewares.RequireAuth, controllers.GetLogs)
+	router.GET("/logs/level/:level", middlewares.RequireAuth, controllers.GetLogsByLevel)
+	router.GET("/logs/:id", middlewares.RequireAuth, controllers.GetLogByID)
+
 	// WebSocket route
 	router.GET("/ws", func(c *gin.Context) {
 		services.HandleConnections(c)
@@ -143,7 +148,7 @@ func main() {
 
 	services.InitWebSocket(db)
 
-	go utils.UploadLogsEveryTenSeconds()
+	//go utils.UploadLogsEveryTenSeconds()
 
 	err := router.Run()
 	if err != nil {

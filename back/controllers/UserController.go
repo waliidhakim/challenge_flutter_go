@@ -20,7 +20,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserGet godoc
+// @Summary Get users
+// @Description Retrieves a list of users with pagination
+// @Tags user
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param page query int false "Page number of the users list" default(1)
+// @Param limit query int false "Number of users per page" default(3)
+// @Success 200 {array} swaggermodels.UserResponseSwagger "List of users"
+// @Failure 401 {string} string "Unauthorized if the user is not admin"
+// @Router /user [get]
 func UserGet(context *gin.Context) {
+	if !roleCheck.IsAdmin(context) {
+		context.Status(http.StatusUnauthorized)
+		return
+	}
 	var users []models.User
 
 	// Récupérer les paramètres de pagination de la requête
@@ -35,10 +51,36 @@ func UserGet(context *gin.Context) {
 	context.JSON(http.StatusOK, users)
 }
 
+// UserGetById godoc
+// @Summary Get user by ID
+// @Description Retrieves a user by their ID
+// @Tags user
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "User ID"
+// @Success 200 {object} swaggermodels.UserResponseSwagger "User found and returned"
+// @Failure 401 {string} string "Unauthorized if not admin or not the account owner"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/{id} [get]
 func UserGetById(context *gin.Context) {
 	id := context.Param("id")
+
+	if !roleCheck.IsAdminOrAccountOwner(context, id) {
+		context.Status(http.StatusUnauthorized)
+		return
+	}
 	var user models.User
-	initializers.DB.First(&user, id)
+	result := initializers.DB.First(&user, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			context.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
 	context.JSON(http.StatusOK, user)
 }
 
@@ -48,8 +90,8 @@ func UserGetById(context *gin.Context) {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Failure 400 {object} map[string]interface{} "Invalid input"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param user body swaggermodels.UserRequestSwagger true "Create user request"
+// @Success 201 {object} swaggermodels.UserResponseSwagger "User successfully created"
 // @Router /user [post]
 func UserPost(context *gin.Context) {
 	var body struct {
@@ -100,6 +142,26 @@ func UserPost(context *gin.Context) {
 	context.JSON(http.StatusCreated, user)
 }
 
+// UserUpdate godoc
+// @Summary Update user
+// @Description Updates user information and optionally uploads a new avatar image
+// @Tags user
+// @Accept multipart/form-data
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "User ID"
+// @Param firstname formData string false "First name of the user"
+// @Param lastname formData string false "Last name of the user"
+// @Param username formData string false "Username for the user"
+// @Param password formData string false "Password for the user"
+// @Param phone formData string false "Phone number of the user"
+// @Param onboarding formData boolean false "Onboarding status"
+// @Param avatar formData file false "Avatar image file"
+// @Success 200 {object} swaggermodels.UserResponseSwagger "Successfully updated user"
+// @Failure 400 {string} string "Bad request data"
+// @Failure 401 {string} string "Unauthorized if not admin or account owner"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/{id} [patch]
 func UserUpdate(context *gin.Context) {
 	id := context.Param("id")
 	if !roleCheck.IsAdminOrAccountOwner(context, id) {
@@ -147,6 +209,20 @@ func UserUpdate(context *gin.Context) {
 	})
 	context.JSON(http.StatusOK, user)
 }
+
+// UserDelete godoc
+// @Summary Delete user
+// @Description Delete a user from the system by user ID
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "User successfully deleted"
+// @Failure 400 {string} string "Bad request if the ID is not provided or invalid"
+// @Failure 401 {string} string "Unauthorized if the user is not admin or not the account owner"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/{id} [delete]
 func UserDelete(context *gin.Context) {
 	id := context.Param("id")
 	if !roleCheck.IsAdminOrAccountOwner(context, id) {
@@ -157,7 +233,21 @@ func UserDelete(context *gin.Context) {
 	context.Status(http.StatusOK)
 }
 
+// UserLogin godoc
+// @Summary User login
+// @Description Logs in a user using their phone number and password
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param body body swaggermodels.UserLoginRequestSwagger true "Login credentials"
+// @Success 200 {object} swaggermodels.UserLoginResponseSwagger "Successfully logged in"
+// @Failure 400 {string} string "Wrong phone or password"
+// @Failure 500 {string} string "Internal server error"
+// @Router /user/login [post]
 func UserLogin(context *gin.Context) {
+
+	initializers.Logger.Info("UserLogin called")
+
 	var body struct {
 		Phone    string
 		Password string
@@ -173,6 +263,7 @@ func UserLogin(context *gin.Context) {
 
 	if user.ID == 0 {
 		// Phone is unknown in that case but to avoid information disclosure we send a vague message
+		initializers.Logger.Errorln("Error logging user : Unknwon phone number")
 		context.JSON(http.StatusBadRequest, gin.H{
 			"error": "Wrong phone or password",
 		})
@@ -213,6 +304,22 @@ func UserLogin(context *gin.Context) {
 	})
 }
 
+// UserPostWithImage godoc
+// @Summary Add new user with image
+// @Description Registers a new user with additional avatar image
+// @Tags user
+// @Accept multipart/form-data
+// @Produce json
+// @Param firstname formData string true "First name of the user"
+// @Param lastname formData string true "Last name of the user"
+// @Param username formData string true "Username for the new user"
+// @Param password formData string true "Password for the new user"
+// @Param phone formData string true "Phone number of the user"
+// @Param avatar formData file false "Avatar image file"
+// @Success 201 {object} swaggermodels.UserRegistrationWithImageResponseSwagger "User successfully created with image"
+// @Failure 400 {object} map[string]string "Bad request data"
+// @Failure 500 {object} map[string]string "Internal server error or failed to upload image"
+// @Router /user/with-image [post]
 func UserPostWithImage(context *gin.Context) {
 	// Réception des données de formulaire
 	firstname := context.PostForm("firstname")
@@ -261,6 +368,17 @@ func UserPostWithImage(context *gin.Context) {
 	context.JSON(http.StatusCreated, gin.H{"user": user})
 }
 
+// UserRegister godoc
+// @Summary Register new user
+// @Description Registers a new user in the system using their phone number and password
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param body body swaggermodels.UserRegisterRequestSwagger true "Registration data"
+// @Success 201 {object} swaggermodels.UserRegisterResponseSwagger "Successfully registered and user created"
+// @Failure 409 {object} map[string]string "User already exists, please login"
+// @Failure 500 {object} map[string]string "Internal server error or failed to create user settings"
+// @Router /register [post]
 func UserRegister(context *gin.Context) {
 	var body struct {
 		Password string
@@ -396,4 +514,24 @@ func AdminLogin(context *gin.Context) {
 		"username":   user.Username,
 		"role":       user.Role,
 	})
+}
+
+func GetUserStats(c *gin.Context) {
+	if !roleCheck.IsAdmin(c) {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	var userCount int64
+	var messageCount int64
+
+	initializers.DB.Model(&models.User{}).Count(&userCount)
+	initializers.DB.Model(&models.GroupChatMessage{}).Count(&messageCount)
+
+	stats := &models.UserStats{
+		UserCount:    userCount,
+		MessageCount: messageCount,
+	}
+
+	c.JSON(http.StatusOK, stats)
 }

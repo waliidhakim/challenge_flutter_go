@@ -3,7 +3,9 @@ import 'package:flutter_web/stats_page.dart';
 import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';
 import 'package:flutter_web/group_chat_crud_page.dart';
-import 'package:flutter_web/feature_management_page.dart'; // Importez la nouvelle page
+import 'package:flutter_web/feature_management_page.dart';
+import 'package:flutter_web/log_page.dart';
+import 'package:flutter_web/user_stats_page.dart'; // Importez la nouvelle page
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -44,13 +46,31 @@ class HomePage extends StatelessWidget {
                         builder: (context) => const UserCrudPage()));
               },
             ),
-            ListTile(
+            ExpansionTile(
               leading: const Icon(Icons.bar_chart, color: Colors.lightBlue),
               title: const Text('Statistiques'),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const StatsPage()));
-              },
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.chat, color: Colors.lightGreen),
+                  title: const Text('Group Chats'),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const StatsPage()));
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.people, color: Colors.lightGreen),
+                  title: const Text('Utilisateurs'),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const UserStatsPage()));
+                  },
+                ),
+              ],
             ),
             ListTile(
               leading: const Icon(Icons.chat, color: Colors.lightBlue),
@@ -70,6 +90,14 @@ class HomePage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                         builder: (context) => const FeatureManagementPage()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.article, color: Colors.lightBlue),
+              title: const Text('Logs'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const LogPage()));
               },
             ),
             ListTile(

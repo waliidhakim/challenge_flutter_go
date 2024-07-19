@@ -104,7 +104,21 @@ class _FeatureManagementPageState extends State<FeatureManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Gestion de Fonctionnalités"),
+        title: Center(
+          child: Text(
+            'Gestion des Fonctionalités',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        centerTitle: true, // Centrer le titre dans la AppBar
+        backgroundColor:
+            Colors.lightBlue[100], // Couleur uniforme avec les autres pages
+        elevation: 4.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(10),
+          ),
+        ),
       ),
       body: Column(
         children: [

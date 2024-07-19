@@ -9,7 +9,6 @@ class GroupChatUser {
   GroupChatUser({required this.id, required this.user, required this.role});
 
   factory GroupChatUser.fromJson(Map<String, dynamic> json) {
-    print("GroupChatUser JSON: $json");
     return GroupChatUser(
       id: json['ID'],
       user: User.fromJson(json['User']),
@@ -40,7 +39,6 @@ class GroupChat {
   });
 
   factory GroupChat.fromJson(Map<String, dynamic> json) {
-    print("GroupChat JSON: $json");
     return GroupChat(
       id: json['ID'],
       name: json['Name'],

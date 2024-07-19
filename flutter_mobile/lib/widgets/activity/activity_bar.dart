@@ -297,11 +297,6 @@ class _ActivityBarState extends State<ActivityBar> {
                                       addNewLocation();
                                     },
                                     icon: const Icon(Icons.add)),
-                                IconButton(
-                                    onPressed: () {
-                                      selectAnotherDate(context);
-                                    },
-                                    icon: const Icon(Icons.directions)),
                               ],
                             )
                           ],

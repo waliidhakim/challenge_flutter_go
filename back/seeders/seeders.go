@@ -81,7 +81,18 @@ func createUsers(db *gorm.DB) {
 
 	for _, user := range users {
 		if err := db.Create(&user).Error; err != nil {
-			log.Fatalf("could not create user: %v", err)
+			log.Println("Database error:", err)
+			return
+		}
+		// Create Settings for the user
+		setting := models.Setting{
+			UserID:          int(user.ID),
+			NotifyLevel:     models.All,
+			NotifyThreshold: 5,
+		}
+		if err := db.Create(&setting).Error; err != nil {
+			log.Println("Database error:", err)
+			return
 		}
 	}
 }

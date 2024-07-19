@@ -28,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<GroupChat>> groupChats;
+
   // late Future<Map<String, int>> unreadMessages;
 
   @override
@@ -38,8 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showPopupMenu(BuildContext context, GroupChat group) async {
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
 
     // Détermine si l'utilisateur actuel est le propriétaire du groupe
     print('Checking ownership for user ID: ${sharedPrefs.userId}');
@@ -83,16 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
           GroupChatDetailScreen.navigateTo(context, group.id.toString());
           break;
         case 'edit':
-          EditGroupChatScreen.navigateTo(context, group.id.toString(),
-              group.name, group.activity, group.catchPhrase, group.imageUrl);
+          EditGroupChatScreen.navigateTo(context, group.id.toString(), group.name, group.activity, group.catchPhrase, group.imageUrl);
           break;
         case 'delete':
           _deleteGroupChat(context, group.id);
           break;
         case 'add_members':
           String groupId = group.id.toString();
-          print(
-              "--------------------Redirect to add_members page of the group $groupId----------------------------");
+          print("--------------------Redirect to add_members page of the group $groupId----------------------------");
           AddMembersScreen.navigateTo(context, group.id.toString());
           break;
       }
@@ -119,48 +117,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Groupes")),
+      appBar: AppBar(
+        title: const Text("Groupes"),
+        actions: [
+          IconButton(
+              onPressed: () {
+                CreateGroupChatScreen.navigateTo(context);
+              },
+              icon: const Icon(Icons.add),
+          )
+        ],
+      ),
       bottomNavigationBar: const Navbar(),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Token: ${sharedPrefs.token}',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    sharedPrefs.token = "";
-                    LoginScreen.navigateTo(context);
-                  },
-                  child: const Text('Logout'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red, // Background color
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    DebugPrefsScreen.navigateTo(context);
-                  },
-                  child: const Text('Debug Shared Preferences'),
-                ),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              CreateGroupChatScreen.navigateTo(context);
-            },
-            child: const Text('Créer un nouveau groupe'),
-          ),
           Expanded(
             child: FutureBuilder<List<GroupChat>>(
               future: groupChats,
@@ -179,8 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       group: group,
                       unreadCount: 0, // ou 0 pour le moment
                       onTap: () {
-                        GroupChatScreen.navigateTo(
-                            context, group.id.toString(), group.name);
+                        GroupChatScreen.navigateTo(context, group.id.toString(), group.name);
                       },
                       onLongPress: (LongPressStartDetails details) async {
                         _showPopupMenu(context, group);

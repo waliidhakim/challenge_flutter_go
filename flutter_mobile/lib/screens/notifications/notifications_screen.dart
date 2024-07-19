@@ -72,6 +72,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 // int unreadCount = unreadMessagesMap[group.id.toString()] ?? 0;
                 Notif notification = snapshot.data![index];
                 final formattedTime = DateFormat('HH:mm').format(notification.datetime);
+                print(notification);
 
                 return  ListTile(
                   contentPadding: const EdgeInsets.all(8),

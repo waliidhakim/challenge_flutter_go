@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/screens/home/home_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_mobile/utils/screen_arguments.dart';
@@ -46,10 +47,10 @@ class _OnboardScreenState extends State<OnboardScreen> {
   postAccountConfig(String userId) async {
     final token =
         sharedPrefs.token; // Récupérer le token depuis les shared preferences
-
+    final apiUrl = AppSettings().apiUrl;
     var request = http.MultipartRequest(
       'PATCH',
-      Uri.parse('http://10.0.2.2:4000/user/$userId'),
+      Uri.parse('$apiUrl/user/$userId'),
     );
     request.headers['Authorization'] = 'Bearer $token';
     request.fields['Firstname'] = firstname;

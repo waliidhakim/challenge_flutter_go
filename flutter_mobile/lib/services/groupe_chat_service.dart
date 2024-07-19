@@ -1,12 +1,14 @@
 import 'dart:convert';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/models/group_chat.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:http/http.dart' as http;
 
 class GroupChatService {
   Future<List<GroupChat>> fetchGroupChats() async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/group-chat'),
+      Uri.parse('$apiUrl/group-chat'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -25,8 +27,9 @@ class GroupChatService {
   }
 
   Future<GroupChat> fetchGroupChatById(String id) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/group-chat/$id'),
+      Uri.parse('$apiUrl/group-chat/$id'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -40,8 +43,9 @@ class GroupChatService {
   }
 
   Future<bool> deleteGroupChat(int id) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/group-chat/$id'),
+      Uri.parse('$apiUrl/group-chat/$id'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -51,8 +55,9 @@ class GroupChatService {
   }
 
   Future<bool> addMembers(String groupChatId, List<String> members) async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.patch(
-      Uri.parse('http://10.0.2.2:4000/group-chat/$groupChatId'),
+      Uri.parse('$apiUrl/group-chat/$groupChatId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${sharedPrefs.token}',
@@ -70,8 +75,9 @@ class GroupChatService {
   }
 
   Future<Map<String, int>> fetchUnreadMessages() async {
+    final apiUrl = AppSettings().apiUrl;
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/unread-messages'),
+      Uri.parse('$apiUrl/unread-messages'),
       headers: {
         'Authorization': 'Bearer ${sharedPrefs.token}',
       },
@@ -91,7 +97,8 @@ class GroupChatService {
       String groupId, String name, String activity, String catchPhrase,
       [String? imagePath]) async {
     try {
-      var uri = Uri.parse('http://10.0.2.2:4000/group-chat/infos/$groupId');
+      final apiUrl = AppSettings().apiUrl;
+      var uri = Uri.parse('$apiUrl/group-chat/infos/$groupId');
       var request = http.MultipartRequest('PATCH', uri)
         ..headers['Authorization'] = 'Bearer ${sharedPrefs.token}'
         ..fields['name'] = name

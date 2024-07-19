@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobile/main.dart';
 import 'package:flutter_mobile/models/group_chat.dart';
 import 'package:flutter_mobile/models/location_vote.dart';
 import 'package:flutter_mobile/services/activity_service.dart';
@@ -118,9 +119,14 @@ class GroupChatScreenState extends State<GroupChatScreen> {
       isLoading = true;
     });
     try {
+      final apiUrl = AppSettings().apiUrl;
       final response = await http.get(
+<<<<<<< Updated upstream
         Uri.parse(
             'http://10.0.2.2:4000/group-chat/${widget.groupId}/messages?limit=$limit&offset=$offset'),
+=======
+        Uri.parse('$apiUrl/group-chat/${widget.groupId}/messages?limit=$limit&offset=$offset'),
+>>>>>>> Stashed changes
         headers: {
           'Authorization': 'Bearer ${sharedPrefs.token}',
         },
@@ -173,12 +179,6 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.groupName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {

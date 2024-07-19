@@ -5,7 +5,6 @@ import 'package:flutter_web/login_page.dart';
 import 'package:flutter_web/user_crud_page.dart';
 import 'package:flutter_web/group_chat_crud_page.dart';
 import 'package:flutter_web/feature_management_page.dart';
-import 'package:flutter_web/log_page.dart';
 import 'package:flutter_web/user_stats_page.dart'; // Importez la nouvelle page
 
 class HomePage extends StatelessWidget {
@@ -112,7 +111,7 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -120,14 +119,12 @@ class HomePage extends StatelessWidget {
               'Bienvenue sur la page d\'accueil',
               style: TextStyle(fontSize: 20),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.home, size: 250, color: Colors.lightBlue),
-                const SizedBox(width: 20),
-                Image.asset('assets/images/icons8-engrenage-64.png',
-                    width: 250, height: 250),
+                Icon(Icons.admin_panel_settings,
+                    size: 250, color: Colors.lightBlue),
               ],
             ),
           ],

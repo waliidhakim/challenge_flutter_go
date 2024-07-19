@@ -1,20 +1,21 @@
-// lib/widgets/dialogs/create_user_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_web/models/users.dart';
 import 'package:flutter_web/services/users/user_service.dart';
 
-class CreateUserDialog {
-  static void show(BuildContext context, Function onUserCreated) {
-    final _firstnameController = TextEditingController();
-    final _lastnameController = TextEditingController();
-    final _usernameController = TextEditingController();
-    final _passwordController = TextEditingController();
-    final _phoneController = TextEditingController();
+class UpdateUserDialog {
+  static void show(BuildContext context, User user, Function() onUserUpdated) {
+    final _firstnameController = TextEditingController(text: user.firstName);
+    final _lastnameController = TextEditingController(text: user.lastName);
+    final _usernameController = TextEditingController(text: user.username);
+    final _passwordController =
+        TextEditingController(); // Assume no preset for security
+    final _phoneController = TextEditingController(text: user.phone);
 
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Create New User'),
+          title: Text('Update User'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -27,13 +28,13 @@ class CreateUserDialog {
                 TextField(
                     controller: _usernameController,
                     decoration: InputDecoration(labelText: 'Username')),
-                TextField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(labelText: 'Password'),
-                    obscureText: true),
-                TextField(
-                    controller: _phoneController,
-                    decoration: InputDecoration(labelText: 'Phone')),
+                // TextField(
+                //     controller: _passwordController,
+                //     decoration: InputDecoration(labelText: 'Password'),
+                //     obscureText: true),
+                // TextField(
+                //     controller: _phoneController,
+                //     decoration: InputDecoration(labelText: 'Phone')),
               ],
             ),
           ),
@@ -43,10 +44,12 @@ class CreateUserDialog {
               onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             TextButton(
-              child: Text('Create'),
+              child: Text('Update'),
               onPressed: () async {
                 try {
-                  bool success = await UserService.createUser(
+                  bool success = await UserService.updateUser(
+                    user.id
+                        .toString(), // Ensure user ID is correctly handled, as String
                     _firstnameController.text,
                     _lastnameController.text,
                     _usernameController.text,
@@ -54,15 +57,15 @@ class CreateUserDialog {
                     _phoneController.text,
                   );
                   if (success) {
-                    Navigator.of(dialogContext).pop(); // Ferme le dialogue
-                    onUserCreated(); // Appelle la fonction de rappel
+                    Navigator.of(dialogContext).pop();
+                    onUserUpdated();
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('User created successfully'),
+                      content: Text('User updated successfully'),
                       backgroundColor: Colors.green,
                     ));
                   }
                 } catch (e) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text('Error: $e'), backgroundColor: Colors.red));
                 }
               },

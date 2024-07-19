@@ -10,6 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetLogs godoc
+// @Summary Get logs
+// @Description Retrieves logs with pagination
+// @Tags logs
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of logs per page" default(10)
+// @Success 200 {object} swaggermodels.LogPaginationResponseSwagger "Paginated logs response"
+// @Failure 401 {string} string "Unauthorized if not admin"
+// @Failure 500 {string} string "Internal server error on fetching logs"
+// @Router /logs [get]
 func GetLogs(c *gin.Context) {
 	if !roleCheck.IsAdmin(c) {
 		c.Status(http.StatusUnauthorized)
@@ -45,7 +58,20 @@ func GetLogs(c *gin.Context) {
 	})
 }
 
-// GetLogsByLevel retourne les logs d'un niveau spécifique avec pagination
+// GetLogsByLevel godoc
+// @Summary Get logs by level
+// @Description Retrieves logs of a specific level with pagination
+// @Tags logs
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param level path string true "Log level to filter by"
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of logs per page" default(10)
+// @Success 200 {object} swaggermodels.LogPaginationResponseSwagger "Paginated logs response filtered by level"
+// @Failure 401 {string} string "Unauthorized if not admin"
+// @Failure 500 {string} string "Internal server error on fetching logs"
+// @Router /logs/level/{level} [get]
 func GetLogsByLevel(c *gin.Context) {
 	if !roleCheck.IsAdmin(c) {
 		c.Status(http.StatusUnauthorized)
@@ -83,7 +109,18 @@ func GetLogsByLevel(c *gin.Context) {
 	})
 }
 
-// GetLogByID retourne un log spécifique par ID
+// GetLogByID godoc
+// @Summary Get log by ID
+// @Description Retrieves a specific log by its ID
+// @Tags logs
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Log ID"
+// @Success 200 {object} swaggermodels.LogPaginationResponseSwagger "Detailed log information"
+// @Failure 401 {string} string "Unauthorized if not admin"
+// @Failure 404 {string} string "Log not found"
+// @Router /logs/{id} [get]
 func GetLogByID(c *gin.Context) {
 	id := c.Param("id")
 

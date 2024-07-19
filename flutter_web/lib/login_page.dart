@@ -1,5 +1,6 @@
 import 'dart:html';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_web/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String _errorMessage = '';
+  static String? apiUrl = dotenv.env['API_URL'];
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
@@ -29,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       var response = await http.post(
-        Uri.http('localhost:4000', '/user/login'),
+        Uri.parse("$apiUrl/user/admin/login"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -47,6 +49,10 @@ class _LoginPageState extends State<LoginPage> {
             "Authorization=${responseData['token']};path=/;max-age=3600;SameSite=None";
         Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => HomePage()));
+      } else if (response.statusCode == 401) {
+        setState(() {
+          _errorMessage = "Vous n'avez pas le droit d'accéder à cette section.";
+        });
       } else {
         throw Exception('Failed to log in with status: ${response.statusCode}');
       }
@@ -54,6 +60,10 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = false;
         _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }

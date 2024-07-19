@@ -11,13 +11,25 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
 )
+
+// @title Swagger Example API
+// @description This is a sample server for a pet store.
+// @version 1.0
+// @host localhost:4000
+// @BasePath /
+// @schemes http https
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 
 var db *gorm.DB
 
 func init() {
 	initializers.InitLogger()
+
 	initializers.LoadEnvVars()
 	initializers.DbConnect()
 	db = initializers.DB
@@ -38,18 +50,21 @@ func main() {
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"message": "poooooooooooooooooog",
 		})
 	})
 
 	// USER Routes
 	router.POST("/user", controllers.UserPost)
-	router.GET("/user", controllers.UserGet)
+	router.GET("/user", middlewares.RequireAuth, controllers.UserGet)
 	router.GET("/user/:id", controllers.UserGetById)
 	router.PATCH("/user/:id", middlewares.RequireAuth, controllers.UserUpdate)
 	router.DELETE("/user/:id", middlewares.RequireAuth, controllers.UserDelete)
 	router.POST("/user/login", controllers.UserLogin)
+	router.POST("/user/admin/login", controllers.AdminLogin)
 	router.GET("/users/:id/group_chat_activity_participations", middlewares.RequireAuth, controllers.UserGetGroupChatActivityParticipations)
+	router.GET("/users/stats", middlewares.RequireAuth, controllers.GetUserStats)
+
 	// User settings
 	router.GET("/settings", middlewares.RequireAuth, controllers.SettingGet)
 	router.GET("/settings/user/:id", middlewares.RequireAuth, controllers.SettingGetByUserId)
@@ -64,6 +79,7 @@ func main() {
 
 	// GroupChat Routes
 	router.GET("/group-chat", middlewares.RequireAuth, controllers.GroupChatGet)
+	router.GET("/group-chat/all", middlewares.RequireAuth, controllers.GroupChatGetAll)
 	router.GET("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatGetById)
 	router.POST("/group-chat", middlewares.RequireAuth, controllers.GroupChatPost)
 	router.PATCH("/group-chat/:id", middlewares.RequireAuth, controllers.GroupChatUpdate)
@@ -71,6 +87,18 @@ func main() {
 	router.GET("/group-chat/:id/messages", middlewares.RequireAuth, controllers.GroupChatGetMessages)
 	router.PATCH("/group-chat/infos/:id", middlewares.RequireAuth, controllers.GroupChatUpdateInfos)
 	router.GET("/unread-messages", middlewares.RequireAuth, controllers.GetUnreadMessages)
+
+	// router.POST("/send-notification", controllers.SendNotification)
+
+	// Feature Flipping fonctionnalité
+	// Feature Management Routes
+	router.GET("/features", middlewares.RequireAuth, controllers.FeaturesList)
+	router.POST("/features", middlewares.RequireAuth, controllers.FeatureCreate)
+	router.GET("/features/:id", middlewares.RequireAuth, controllers.FeatureGet)
+	router.PATCH("/features/:id", middlewares.RequireAuth, controllers.FeatureUpdate)
+	router.DELETE("/features/:id", middlewares.RequireAuth, controllers.FeatureDelete)
+
+	// router.POST("/send-notification", controllers.SendNotification)
 
 	// GroupChatActivity Routes
 	router.GET("/group-chat-activity", middlewares.RequireAuth, controllers.ActivityParticipationGet)
@@ -114,7 +142,15 @@ func main() {
 		services.HandleConnections(c)
 	})
 
+	router.GET("/swagger/*any", gin.WrapH(httpSwagger.Handler(
+		httpSwagger.URL("/docs/swagger.json"), // URL vers le fichier swagger.json
+	)))
+
+	router.Static("/docs", "./docs")
+
 	services.InitWebSocket(db)
+
+	//go utils.UploadLogsEveryTenSeconds()
 
 	err := router.Run()
 	if err != nil {

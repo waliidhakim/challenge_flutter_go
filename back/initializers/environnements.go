@@ -9,4 +9,6 @@ func LoadEnvVars() {
 	if err != nil {
 		Logger.Fatalln("Error loading .env file")
 	}
+
+	Logger.Infoln("Successfully loaded env file")
 }

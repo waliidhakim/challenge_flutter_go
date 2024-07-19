@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobile/utils/shared_prefs.dart';
+import 'package:flutter_mobile/utils/shared_prefs.dart'; // Assurez-vous que le chemin d'accès au package est correct
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_mobile/screens/home/home_screen.dart';
+import 'package:flutter_mobile/screens/home/home_screen.dart'; // Assurez-vous que le chemin d'accès au package est correct
 
 class CreateGroupChatScreen extends StatefulWidget {
   const CreateGroupChatScreen({Key? key}) : super(key: key);
@@ -23,12 +23,25 @@ class CreateGroupChatScreen extends StatefulWidget {
 
 class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
   String name = '';
-  String activity = '';
   String catchPhrase = '';
   File? _avatar;
   bool _validate = false;
   String _errorMessage = '';
   final _controller = TextEditingController();
+
+  // Modification ici pour initialiser 'activity' à null
+  String? activity; // Modification pour permettre le placeholder
+  final List<String> activities = [
+    'Sortie',
+    'Sport',
+    'Randonnée',
+    'Balade',
+    'Jeux de société',
+    'Réunion amicale',
+    'Cinéma',
+    'Try Hard Challenge',
+    'Autre'
+  ];
 
   @override
   void dispose() {
@@ -46,7 +59,8 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
     );
     request.headers['Authorization'] = 'Bearer $token';
     request.fields['Name'] = name;
-    request.fields['Activity'] = activity;
+    request.fields['Activity'] =
+        activity ?? ''; // Gérer le cas où 'activity' est null
     request.fields['CatchPhrase'] = catchPhrase;
 
     if (_avatar != null) {
@@ -68,6 +82,22 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
         _validate = _controller.text.isEmpty;
         _errorMessage = "Les champs ne doivent pas être vides";
       });
+    } else if (response.statusCode == 403) {
+      // Code pour fonctionnalité désactivée
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Fonctionnalité Désactivée'),
+          content: Text(
+              'La création de group chat est temporairement désactivée. Veuillez réessayer plus tard.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Ok'),
+            ),
+          ],
+        ),
+      );
     } else if (response.statusCode == 500) {
       showDialog(
         context: context,
@@ -85,8 +115,24 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
       setState(() {
         _validate = false;
       });
-    } else {
+    } else if (response.statusCode == 201) {
+      // Cas de succès
       HomeScreen.navigateTo(context);
+    } else {
+      // Gérer d'autres types de réponses si nécessaire
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Erreur'),
+          content: Text('Une erreur inconnue est survenue.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Ok'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -108,12 +154,25 @@ class _CreateGroupChatScreenState extends State<CreateGroupChatScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              onChanged: (value) => {activity = value},
+            DropdownButtonFormField<String>(
+              value: activity,
               decoration: const InputDecoration(
                 labelText: 'Activité',
                 border: OutlineInputBorder(),
               ),
+              hint: const Text(
+                  'Choisir le type d\'activité'), // Ajout du placeholder
+              items: activities.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  activity = newValue;
+                });
+              },
             ),
             const SizedBox(height: 16),
             TextField(

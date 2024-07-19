@@ -6,8 +6,8 @@ import (
 )
 
 func init() {
-	initializers.LoadEnvVars()
 	initializers.InitLogger()
+	initializers.LoadEnvVars()
 	initializers.DbConnect()
 }
 
@@ -19,6 +19,7 @@ func main() {
 		&models.GroupChatMessage{},
 		&models.GroupChatMessageRead{},
 		&models.GroupChatActivityParticipation{},
+		&models.FeatureFlipped{},
 		&models.GroupChatActivityLocation{},
 		&models.GroupChatActivityLocationVote{},
 		&models.Setting{},

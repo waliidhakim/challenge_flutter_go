@@ -44,7 +44,7 @@ func InitWebSocket(database *gorm.DB) {
 }
 
 func HandleConnections(c *gin.Context) {
-	initializers.Logger.Infoln("New WebSocket connection established")
+	initializers.DbLogger.Errorf("New WebSocket connection established")
 	ws, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		initializers.Logger.Fatalf("Failed to upgrade to WebSocket: %v", err)

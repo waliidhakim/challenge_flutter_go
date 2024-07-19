@@ -13,6 +13,6 @@ type LogModel struct {
 	CreationDate time.Time
 }
 
-func (log LogModel) Save(db *gorm.DB) error {
+func (log *LogModel) Save(db *gorm.DB) error {
 	return db.Create(&log).Error
 }

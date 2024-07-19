@@ -1,0 +1,1003 @@
+basePath: /
+definitions:
+  swaggermodels.FeatureFlippedSwagger:
+    properties:
+      featureName:
+        example: New UI Feature
+        type: string
+      isActive:
+        type: boolean
+    type: object
+  swaggermodels.GroupChatSwagger:
+    properties:
+      activity:
+        type: string
+      alert:
+        type: string
+      alertDate:
+        type: string
+      catchPhrase:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  swaggermodels.LogPaginationResponseSwagger:
+    properties:
+      creationDate:
+        type: string
+      logLevel:
+        type: string
+      logMessage:
+        type: string
+    type: object
+  swaggermodels.UserLoginRequestSwagger:
+    properties:
+      password:
+        example: s3cret
+        type: string
+      phone:
+        example: "1234567890"
+        type: string
+    type: object
+  swaggermodels.UserLoginResponseSwagger:
+    properties:
+      onboarding:
+        example: false
+        type: boolean
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      userId:
+        example: 1
+        type: integer
+      username:
+        example: johndoe
+        type: string
+    type: object
+  swaggermodels.UserRegisterRequestSwagger:
+    properties:
+      password:
+        example: s3cr3t
+        type: string
+      phone:
+        example: "1234567890"
+        type: string
+    type: object
+  swaggermodels.UserRegisterResponseSwagger:
+    properties:
+      id:
+        example: 1
+        type: integer
+      onboarding:
+        example: true
+        type: boolean
+      phone:
+        example: "1234567890"
+        type: string
+    type: object
+  swaggermodels.UserRegistrationWithImageResponseSwagger:
+    properties:
+      avatarUrl:
+        example: https://example.com/default.png
+        type: string
+      firstname:
+        example: John
+        type: string
+      id:
+        example: 1
+        type: integer
+      lastname:
+        example: Doe
+        type: string
+      phone:
+        example: "1234567890"
+        type: string
+      role:
+        example: user
+        type: string
+      username:
+        example: johndoe
+        type: string
+    type: object
+  swaggermodels.UserRequestSwagger:
+    properties:
+      firstname:
+        type: string
+      lastname:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    type: object
+  swaggermodels.UserResponseSwagger:
+    properties:
+      avatarUrl:
+        type: string
+      firstname:
+        type: string
+      id:
+        type: integer
+      lastname:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:4000
+info:
+  contact: {}
+  description: This is a sample server for a pet store.
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /features:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all feature toggles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of features
+          schema:
+            items:
+              $ref: '#/definitions/swaggermodels.FeatureFlippedSwagger'
+            type: array
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "500":
+          description: Internal server error on fetching features
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: List features
+      tags:
+      - features
+    post:
+      consumes:
+      - application/json
+      description: Creates a new feature toggle
+      parameters:
+      - description: Feature to create
+        in: body
+        name: feature
+        required: true
+        schema:
+          $ref: '#/definitions/swaggermodels.FeatureFlippedSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Feature created
+          schema:
+            $ref: '#/definitions/swaggermodels.FeatureFlippedSwagger'
+        "400":
+          description: Bad request if data is incorrect
+          schema:
+            type: string
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "500":
+          description: Internal server error on creating feature
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create feature
+      tags:
+      - features
+  /features/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a specific feature toggle
+      parameters:
+      - description: Feature ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feature deleted
+          schema:
+            type: string
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "404":
+          description: Feature not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error on deleting feature
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete feature
+      tags:
+      - features
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific feature by ID
+      parameters:
+      - description: Feature ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feature retrieved
+          schema:
+            $ref: '#/definitions/swaggermodels.FeatureFlippedSwagger'
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "404":
+          description: Feature not found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get feature
+      tags:
+      - features
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing feature toggle
+      parameters:
+      - description: Feature ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Feature data to update
+        in: body
+        name: feature
+        required: true
+        schema:
+          $ref: '#/definitions/swaggermodels.FeatureFlippedSwagger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feature updated
+          schema:
+            $ref: '#/definitions/swaggermodels.FeatureFlippedSwagger'
+        "400":
+          description: Bad request if data is incorrect
+          schema:
+            type: string
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "404":
+          description: Feature not found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update feature
+      tags:
+      - features
+  /group-chat:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves group chats associated with the authenticated user or
+        all if admin
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of group chats
+          schema:
+            items:
+              $ref: '#/definitions/swaggermodels.GroupChatSwagger'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Get group chats
+      tags:
+      - group-chat
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new group chat with optional image upload
+      parameters:
+      - description: Name of the group chat
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Activity associated with the group chat
+        in: formData
+        name: activity
+        required: true
+        type: string
+      - description: Catchphrase of the group chat
+        in: formData
+        name: catchPhrase
+        type: string
+      - description: Upload image for the group chat
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Group chat created successfully
+          schema:
+            $ref: '#/definitions/swaggermodels.GroupChatSwagger'
+        "400":
+          description: Invalid input data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Feature not available
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create a group chat
+      tags:
+      - group-chat
+  /group-chat/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a group chat, operation allowed only for the owner
+      parameters:
+      - description: Group Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Group chat deleted successfully
+          schema:
+            type: string
+        "401":
+          description: Unauthorized access
+          schema:
+            type: string
+        "403":
+          description: Not the owner
+          schema:
+            type: string
+        "404":
+          description: Group chat not found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete group chat
+      tags:
+      - group-chat
+    get:
+      consumes:
+      - application/json
+      description: Retrieves detailed information about a specific group chat, including
+        its members, based on the user's role and permissions.
+      parameters:
+      - description: Group Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detailed information of the group chat including members
+          schema:
+            $ref: '#/definitions/swaggermodels.GroupChatSwagger'
+        "401":
+          description: Unauthorized if user ID is not provided or user is not authenticated
+          schema:
+            type: string
+        "403":
+          description: Forbidden if user is neither an admin nor a member/owner of
+            the group chat
+          schema:
+            type: string
+        "404":
+          description: Not Found if the group chat does not exist
+          schema:
+            type: string
+        "500":
+          description: Internal server error if there are database errors
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve a specific group chat by ID
+      tags:
+      - group-chat
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing group chat; admin or owner can add new members
+      parameters:
+      - description: Group Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name of the group chat
+        in: body
+        name: name
+        schema:
+          type: string
+      - description: Activity associated with the group chat
+        in: body
+        name: activity
+        schema:
+          type: string
+      - description: Catchphrase of the group chat
+        in: body
+        name: catchPhrase
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Group chat updated successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid input data
+          schema:
+            type: string
+        "401":
+          description: Unauthorized access
+          schema:
+            type: string
+        "403":
+          description: Forbidden operation, not an owner/admin
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update group chat
+      tags:
+      - group-chat
+  /group-chat/all:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all group chats from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Complete list of all group chats
+          schema:
+            items:
+              $ref: '#/definitions/swaggermodels.GroupChatSwagger'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Get all group chats
+      tags:
+      - group-chat
+  /group-chat/infos/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates specific information of a group chat by the owner
+      parameters:
+      - description: Group Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New name of the group chat
+        in: formData
+        name: name
+        type: string
+      - description: New activity of the group chat
+        in: formData
+        name: activity
+        type: string
+      - description: New catchphrase of the group chat
+        in: formData
+        name: catchPhrase
+        type: string
+      - description: New image for the group chat
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Group chat information updated successfully
+          schema:
+            type: string
+        "401":
+          description: Unauthorized access
+          schema:
+            type: string
+        "403":
+          description: Not the owner
+          schema:
+            type: string
+        "404":
+          description: Group chat not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update group chat information
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update group chat information
+      tags:
+      - group-chat
+  /logs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves logs with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of logs per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated logs response
+          schema:
+            $ref: '#/definitions/swaggermodels.LogPaginationResponseSwagger'
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "500":
+          description: Internal server error on fetching logs
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get logs
+      tags:
+      - logs
+  /logs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific log by its ID
+      parameters:
+      - description: Log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detailed log information
+          schema:
+            $ref: '#/definitions/swaggermodels.LogPaginationResponseSwagger'
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "404":
+          description: Log not found
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get log by ID
+      tags:
+      - logs
+  /logs/level/{level}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves logs of a specific level with pagination
+      parameters:
+      - description: Log level to filter by
+        in: path
+        name: level
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of logs per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated logs response filtered by level
+          schema:
+            $ref: '#/definitions/swaggermodels.LogPaginationResponseSwagger'
+        "401":
+          description: Unauthorized if not admin
+          schema:
+            type: string
+        "500":
+          description: Internal server error on fetching logs
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get logs by level
+      tags:
+      - logs
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user in the system using their phone number and
+        password
+      parameters:
+      - description: Registration data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/swaggermodels.UserRegisterRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully registered and user created
+          schema:
+            $ref: '#/definitions/swaggermodels.UserRegisterResponseSwagger'
+        "409":
+          description: User already exists, please login
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error or failed to create user settings
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register new user
+      tags:
+      - user
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of users with pagination
+      parameters:
+      - default: 1
+        description: Page number of the users list
+        in: query
+        name: page
+        type: integer
+      - default: 3
+        description: Number of users per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/swaggermodels.UserResponseSwagger'
+            type: array
+        "401":
+          description: Unauthorized if the user is not admin
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get users
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Add a new user to the system
+      parameters:
+      - description: Create user request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/swaggermodels.UserRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User successfully created
+          schema:
+            $ref: '#/definitions/swaggermodels.UserResponseSwagger'
+      summary: Add new user
+      tags:
+      - user
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user from the system by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully deleted
+          schema:
+            type: string
+        "400":
+          description: Bad request if the ID is not provided or invalid
+          schema:
+            type: string
+        "401":
+          description: Unauthorized if the user is not admin or not the account owner
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User found and returned
+          schema:
+            $ref: '#/definitions/swaggermodels.UserResponseSwagger'
+        "401":
+          description: Unauthorized if not admin or not the account owner
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - user
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Updates user information and optionally uploads a new avatar image
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: First name of the user
+        in: formData
+        name: firstname
+        type: string
+      - description: Last name of the user
+        in: formData
+        name: lastname
+        type: string
+      - description: Username for the user
+        in: formData
+        name: username
+        type: string
+      - description: Password for the user
+        in: formData
+        name: password
+        type: string
+      - description: Phone number of the user
+        in: formData
+        name: phone
+        type: string
+      - description: Onboarding status
+        in: formData
+        name: onboarding
+        type: boolean
+      - description: Avatar image file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated user
+          schema:
+            $ref: '#/definitions/swaggermodels.UserResponseSwagger'
+        "400":
+          description: Bad request data
+          schema:
+            type: string
+        "401":
+          description: Unauthorized if not admin or account owner
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user using their phone number and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/swaggermodels.UserLoginRequestSwagger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged in
+          schema:
+            $ref: '#/definitions/swaggermodels.UserLoginResponseSwagger'
+        "400":
+          description: Wrong phone or password
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: User login
+      tags:
+      - authentication
+  /user/with-image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Registers a new user with additional avatar image
+      parameters:
+      - description: First name of the user
+        in: formData
+        name: firstname
+        required: true
+        type: string
+      - description: Last name of the user
+        in: formData
+        name: lastname
+        required: true
+        type: string
+      - description: Username for the new user
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password for the new user
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Phone number of the user
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Avatar image file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User successfully created with image
+          schema:
+            $ref: '#/definitions/swaggermodels.UserRegistrationWithImageResponseSwagger'
+        "400":
+          description: Bad request data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error or failed to upload image
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add new user with image
+      tags:
+      - user
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

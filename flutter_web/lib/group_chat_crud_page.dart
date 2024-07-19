@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_web/models/group_chat.dart';
 import 'package:flutter_web/services/group_chat/group_chat_service.dart';
+import 'package:flutter_web/widgets/dialog/group_chat/group_chat_details_dialog.dart';
+import 'package:flutter_web/widgets/dialog/group_chat/group_chat_update_dialog.dart';
 
 class GroupChatCrudPage extends StatefulWidget {
   const GroupChatCrudPage({Key? key}) : super(key: key);
@@ -25,6 +27,9 @@ class _GroupChatCrudPageState extends State<GroupChatCrudPage> {
       setState(() {});
     } catch (e) {
       // Gérer l'erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load group chats: $e')),
+      );
     }
   }
 
@@ -62,6 +67,20 @@ class _GroupChatCrudPageState extends State<GroupChatCrudPage> {
                 tooltip: 'Create Group Chat',
               ),
             ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => {},
+                child: Text('Previous'),
+              ),
+              SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () => {},
+                child: Text('Next'),
+              ),
+            ],
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -123,14 +142,33 @@ class _GroupChatCrudPageState extends State<GroupChatCrudPage> {
         children: [
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: () {
-              // Action pour éditer le GroupChat
+            onPressed: () async {
+              try {
+                var groupChatDetails =
+                    await GroupChatService.fetchGroupChatDetails(groupChat.id);
+                UpdateGroupChatDialog.show(
+                    context, groupChatDetails, _loadGroupChats);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Failed to load group chat details: $e')),
+                );
+              }
             },
           ),
           IconButton(
             icon: Icon(Icons.info),
-            onPressed: () {
-              // Action pour afficher les détails du GroupChat
+            onPressed: () async {
+              try {
+                var groupChatDetails =
+                    await GroupChatService.fetchGroupChatDetails(groupChat.id);
+                GroupChatDetailsDialog.show(context, groupChatDetails);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Failed to load group chat details: $e')),
+                );
+              }
             },
           ),
           IconButton(

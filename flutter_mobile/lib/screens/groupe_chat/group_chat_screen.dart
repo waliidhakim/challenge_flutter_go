@@ -4,10 +4,10 @@ import 'package:flutter_mobile/models/group_chat.dart';
 import 'package:flutter_mobile/models/location_vote.dart';
 import 'package:flutter_mobile/services/activity_service.dart';
 import 'package:flutter_mobile/services/groupe_chat_service.dart';
-import 'package:flutter_mobile/services/location_vote_service.dart';
 import 'package:flutter_mobile/utils/shared_prefs.dart';
 import 'package:flutter_mobile/services/websocket_service.dart';
 import 'package:flutter_mobile/widgets/activity/activity_bar.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 
@@ -15,12 +15,15 @@ class GroupChatScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
 
-  const GroupChatScreen({super.key, required this.groupId, required this.groupName});
+  const GroupChatScreen(
+      {super.key, required this.groupId, required this.groupName});
 
   static String routeName = '/groupChat';
 
-  static Future<void> navigateTo(BuildContext context, String groupId, String groupName) {
-    return context.push(routeName, extra: {"groupId": groupId, "groupName": groupName});
+  static Future<void> navigateTo(
+      BuildContext context, String groupId, String groupName) {
+    return context
+        .push(routeName, extra: {"groupId": groupId, "groupName": groupName});
   }
 
   @override
@@ -49,7 +52,9 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     _controller = TextEditingController();
     _controller.addListener(_onTyping);
 
-    ActivityService().fetchGroupChatActivities(widget.groupId).then((activities) {
+    ActivityService()
+        .fetchGroupChatActivities(widget.groupId)
+        .then((activities) {
       setState(() {
         _nbParticipants = activities.length;
       });
@@ -66,18 +71,24 @@ class GroupChatScreenState extends State<GroupChatScreen> {
           setState(() {
             messages.insert(0, message);
           });
-        } else if (message["type"] == "typing" && message["sender_id"].toString() != userId) {
+        } else if (message["type"] == "typing" &&
+            message["sender_id"].toString() != userId) {
           isTyping.value = true;
-        } else if (message["type"] == "stop_typing" && message["sender_id"].toString() != userId) {
+        } else if (message["type"] == "stop_typing" &&
+            message["sender_id"].toString() != userId) {
           isTyping.value = false;
-        } else if (message["type"] == "group_participants" && message['group_chat_id'] == int.parse(widget.groupId)) {
+        } else if (message["type"] == "group_participants" &&
+            message['group_chat_id'] == int.parse(widget.groupId)) {
           setState(() {
             _nbParticipants = message['nb_participants'];
           });
-        } else if (message["type"] == "group_votes" && message['group_chat_id'] == int.parse(widget.groupId)) {
+        } else if (message["type"] == "group_votes" &&
+            message['group_chat_id'] == int.parse(widget.groupId)) {
           setState(() {
             List<dynamic> body = jsonDecode(jsonEncode(message['votes']));
-            List<LocationVote> votes = body.map((dynamic item) => LocationVote.fromJson(item)).toList();
+            List<LocationVote> votes = body
+                .map((dynamic item) => LocationVote.fromJson(item))
+                .toList();
             groupVotes.value = votes;
           });
         }
@@ -108,7 +119,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:4000/group-chat/${widget.groupId}/messages?limit=$limit&offset=$offset'),
+        Uri.parse(
+            'http://10.0.2.2:4000/group-chat/${widget.groupId}/messages?limit=$limit&offset=$offset'),
         headers: {
           'Authorization': 'Bearer ${sharedPrefs.token}',
         },
@@ -122,7 +134,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
               "sender_id": msg['sender_id'],
               "username": msg['username'] ?? '',
               "message": msg['message'] ?? '',
-              "created_at": msg['created_at'], // Ajoutez l'heure de création ici
+              "created_at":
+                  msg['created_at'], // Ajoutez l'heure de création ici
             };
           }).toList());
         });
@@ -143,7 +156,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
       final message = _controller.text;
       webSocketService.sendMessage(message);
       _controller.clear();
-      webSocketService.stopTyping(); // Assurez-vous d'envoyer stop_typing lorsque le message est envoyé
+      webSocketService
+          .stopTyping(); // Assurez-vous d'envoyer stop_typing lorsque le message est envoyé
     }
   }
 
@@ -183,21 +197,34 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                     itemCount: messages.length + 1,
                     itemBuilder: (context, index) {
                       if (index == messages.length) {
-                        return isLoading ? const Center(child: CircularProgressIndicator()) : const SizedBox.shrink();
+                        return isLoading
+                            ? const Center(child: CircularProgressIndicator())
+                            : const SizedBox.shrink();
                       }
                       final message = messages[index];
                       final isMe = message["sender_id"].toString() == userId;
                       final datetime = DateTime.parse(message["created_at"]);
-                      final messageTime = DateTime(datetime.year, datetime.month, datetime.day, datetime.hour,datetime.minute, 0, 0).toString();
+                      final messageTime = DateTime(
+                              datetime.year,
+                              datetime.month,
+                              datetime.day,
+                              datetime.hour,
+                              datetime.minute,
+                              0,
+                              0)
+                          .toString();
                       return Container(
                         margin: EdgeInsets.only(
                           bottom: 8,
                           left: isMe ? 48 : 8,
                           right: isMe ? 8 : 48,
-                          top: 8,),
+                          top: 8,
+                        ),
                         padding: const EdgeInsets.all(0),
                         decoration: BoxDecoration(
-                          color: isMe ? Theme.of(context).colorScheme.primaryContainer : Colors.grey[200],
+                          color: isMe
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Colors.grey[200],
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: ListTile(
@@ -207,7 +234,8 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                             children: [
                               Text(message["message"]),
                               Text(
-                                messageTime.substring(0,
+                                messageTime.substring(
+                                  0,
                                   messageTime.lastIndexOf(".") - 3,
                                 ), // Affichez l'heure de création
                                 style: TextStyle(fontSize: 10),
@@ -226,8 +254,11 @@ class GroupChatScreenState extends State<GroupChatScreen> {
                       return const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Row(
-                          children: [
-                            CircularProgressIndicator(),
+                          children: <Widget>[
+                            SpinKitThreeBounce(
+                              color: Colors.blue,
+                              size: 20.0,
+                            ),
                             SizedBox(width: 8),
                             Text("Someone is typing..."),
                           ],

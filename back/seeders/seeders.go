@@ -49,16 +49,19 @@ func main() {
 }
 
 func ClearTables(db *gorm.DB) {
+	db.Exec("DELETE FROM feature_flippeds")
 	db.Exec("DELETE FROM group_chat_messages")
 	db.Exec("DELETE FROM group_chat_users")
 	db.Exec("DELETE FROM group_chats")
 	db.Exec("DELETE FROM users")
+	db.Exec("DELETE FROM log_models")
 }
 
 func Load(db *gorm.DB) {
 	createUsers(db)
 	createGroupChats(db)
 	createGroupChatActivityParticipations(db)
+	createFeatureFlipping(db)
 }
 
 func createUsers(db *gorm.DB) {
@@ -95,6 +98,38 @@ func createGroupChats(db *gorm.DB) {
 
 	groupChats := []models.GroupChat{
 		{Name: "Group 1 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sortie",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 2 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sortie",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 3 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sport",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 4 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Sport",
+			Users: []models.GroupChatUser{
+				{UserID: groupOwner.ID, Role: "owner"},
+				{UserID: user1.ID, Role: "member"},
+				{UserID: user2.ID, Role: "member"},
+			},
+		},
+
+		{Name: "Group 5 Test", ImageUrl: "https://challange-esgi.s3.eu-central-1.amazonaws.com/biere.png", CatchPhrase: "Petite bière ce soir", Activity: "Balade",
 			Users: []models.GroupChatUser{
 				{UserID: groupOwner.ID, Role: "owner"},
 				{UserID: user1.ID, Role: "member"},
@@ -144,6 +179,27 @@ func createGroupChatActivityParticipations(db *gorm.DB) {
 	for _, groupChatActivityParticipation := range groupChatActivityParticipations {
 		if err := db.Create(&groupChatActivityParticipation).Error; err != nil {
 			log.Fatalf("could not create group chat activity participation: %v", err)
+		}
+	}
+
+}
+
+func createFeatureFlipping(db *gorm.DB) {
+
+	featuresToBeFlipped := []models.FeatureFlipped{
+		{
+			FeatureName: "GroupChatCreation",
+			IsActive:    true,
+		},
+		{
+			FeatureName: "GroupChatDeletion",
+			IsActive:    true,
+		},
+	}
+
+	for _, feature := range featuresToBeFlipped {
+		if err := db.Create(&feature).Error; err != nil {
+			log.Fatalf("could not create feature flipping data: %v", err)
 		}
 	}
 

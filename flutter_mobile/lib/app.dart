@@ -32,7 +32,6 @@ import 'package:flutter_mobile/screens/debug/debud_prefs_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/add_members_to_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/create_group_chat_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/edit_group_chat_screen.dart';
-
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_detail_screen.dart';
 import 'package:flutter_mobile/screens/groupe_chat/group_chat_screen.dart';
 import 'package:flutter_mobile/screens/notifications/notifications_screen.dart';
@@ -43,8 +42,18 @@ import 'package:flutter_mobile/screens/home/home_screen.dart';
 import 'package:flutter_mobile/screens/login/login_screen.dart';
 import 'package:flutter_mobile/screens/onboard/onboard_screen.dart';
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
+
+  @override
+  _AppState createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +149,6 @@ class App extends StatelessWidget {
             );
           },
         ),
-        // Ajoutez cette route
         GoRoute(
           path: DebugPrefsScreen.routeName,
           builder: (BuildContext context, GoRouterState state) =>

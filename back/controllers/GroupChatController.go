@@ -4,6 +4,7 @@ import (
 	"backend/initializers"
 	"backend/models"
 	"backend/services"
+	roleCheck "backend/utils"
 	utils "backend/utils"
 	"errors"
 	"fmt"
@@ -15,6 +16,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// GroupChatGet godoc
+// @Summary Get group chats
+// @Description Retrieves group chats associated with the authenticated user or all if admin
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} swaggermodels.GroupChatSwagger "List of group chats"
+// @Router /group-chat [get]
 func GroupChatGet(context *gin.Context) {
 	fmt.Println("get groupchats")
 	var groupChats = services.GetGroupChats(context)
@@ -22,9 +32,53 @@ func GroupChatGet(context *gin.Context) {
 
 }
 
+// GroupChatGetAll godoc
+// @Summary Get all group chats
+// @Description Retrieves all group chats from the database
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} swaggermodels.GroupChatSwagger "Complete list of all group chats"
+// @Router /group-chat/all [get]
+func GroupChatGetAll(context *gin.Context) {
+	fmt.Println("get all db groupchats")
+	var allGroupChats = services.GetAllGroupChats(context)
+	context.JSON(http.StatusOK, allGroupChats)
 
+}
 
+// GroupChatPost godoc
+// @Summary Create a group chat
+// @Description Creates a new group chat with optional image upload
+// @Tags group-chat
+// @Accept multipart/form-data
+// @Produce json
+// @Security ApiKeyAuth
+// @Param name formData string true "Name of the group chat"
+// @Param activity formData string true "Activity associated with the group chat"
+// @Param catchPhrase formData string false "Catchphrase of the group chat"
+// @Param avatar formData file false "Upload image for the group chat"
+// @Success 201 {object} swaggermodels.GroupChatSwagger "Group chat created successfully"
+// @Failure 400 {object} map[string]string "Invalid input data"
+// @Failure 403 {string} string "Feature not available"
+// @Failure 500 {string} string "Internal server error"
+// @Router /group-chat [post]
 func GroupChatPost(context *gin.Context) {
+
+	isActive, errFeatureFlipping := utils.IsFeatureActive(initializers.DB, "GroupChatCreation")
+	if errFeatureFlipping != nil {
+		initializers.Logger.Errorln("Error checking feature availability:", errFeatureFlipping)
+		context.Status(http.StatusInternalServerError)
+		return
+	}
+	if !isActive {
+		context.JSON(http.StatusForbidden, gin.H{
+			"error": "La création de group chat est actuellement désactivée. Veuillez réessayer plus tard.",
+		})
+		return
+	}
+
 	var body struct {
 		Name        string
 		Activity    string
@@ -106,8 +160,25 @@ func GroupChatPost(context *gin.Context) {
 	})
 }
 
+// GroupChatUpdate godoc
+// @Summary Update group chat
+// @Description Updates an existing group chat; admin or owner can add new members
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Group Chat ID"
+// @Param name body string false "Name of the group chat"
+// @Param activity body string false "Activity associated with the group chat"
+// @Param catchPhrase body string false "Catchphrase of the group chat"
+// @Success 200 {string} string "Group chat updated successfully"
+// @Failure 400 {string} string "Invalid input data"
+// @Failure 401 {string} string "Unauthorized access"
+// @Failure 403 {string} string "Forbidden operation, not an owner/admin"
+// @Failure 500 {string} string "Internal server error"
+// @Router /group-chat/{id} [patch]
 func GroupChatUpdate(context *gin.Context) {
-	grouChatId := context.Param("id")
+	groupChatId := context.Param("id")
 
 	userId, exists := context.Get("userId")
 	if !exists {
@@ -115,86 +186,74 @@ func GroupChatUpdate(context *gin.Context) {
 		return
 	}
 
-	// Assurez-vous que userId est du bon type, ici on suppose que c'est un uint
 	userID, ok := userId.(uint)
 	if !ok {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not of type uint"})
 		return
 	}
 
-	// Structure pour les données entrantes
-	var updateData struct {
-		Name        string   `json:"name"`
-		Activity    string   `json:"activity"`
-		CatchPhrase string   `json:"catchPhrase"`
-		NewMembers  []string `json:"new_members"`
-	}
+	var updateData models.UpdateGroupChatData
 	if err := context.BindJSON(&updateData); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
 		return
 	}
 
-	// Vérifier si l'utilisateur est le propriétaire du GroupChat
-	var groupChatUser models.GroupChatUser
-	result := initializers.DB.Where("group_chat_id = ? AND user_id = ? AND role = ?", grouChatId, userID, "owner").First(&groupChatUser)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			context.JSON(http.StatusForbidden, gin.H{"error": "You are not the owner of this group chat"})
+	if utils.IsAdmin(context) {
+		if err := utils.UpdateGroupChat(context, groupChatId, updateData); err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+
+		groupChatIdAsUint, err := strconv.ParseUint(groupChatId, 10, 32)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		if err := utils.AddNewMembers(context, uint(groupChatIdAsUint), updateData.NewMembers); err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		context.JSON(http.StatusOK, gin.H{"message": "Group chat updated successfully"})
 		return
 	}
 
-	// Mise à jour du GroupChat
-	update := initializers.DB.Model(&models.GroupChat{}).Where("id = ?", grouChatId).Updates(models.GroupChat{
-		Name:        updateData.Name,
-		Activity:    updateData.Activity,
-		CatchPhrase: updateData.CatchPhrase,
-	})
-	if update.Error != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update group chat"})
+	if err := utils.IsGroupChatOwner(context, groupChatId, userID); err != nil {
+		context.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 
-	//convert groupId to uint
-	grouChatIdTryParse, err := strconv.ParseUint(grouChatId, 10, 32)
+	if err := utils.UpdateGroupChat(context, groupChatId, updateData); err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	groupChatIdAsUint, err := strconv.ParseUint(groupChatId, 10, 32)
 	if err != nil {
 		fmt.Println(err)
 	}
-	grouChatIdAsUint := uint(grouChatIdTryParse)
 
-	// Ajouter les nouveaux membres
-	for _, phone := range updateData.NewMembers {
-		var user models.User
-		if err := initializers.DB.Where("phone = ?", phone).First(&user).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				context.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("User with phone %s not found", phone)})
-				return
-			}
-			context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-			return
-		}
-
-		groupChatUser := models.GroupChatUser{
-			GroupChatID: grouChatIdAsUint,
-			UserID:      user.ID,
-			Role:        "member",
-		}
-		if err := initializers.DB.Create(&groupChatUser).Error; err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add member to group chat"})
-			return
-		}
-	}
-
-	// Renvoyer la réponse
-	if update.RowsAffected == 0 {
-		context.JSON(http.StatusNotFound, gin.H{"error": "No group chat found with the given ID"})
+	if err := utils.AddNewMembers(context, uint(groupChatIdAsUint), updateData.NewMembers); err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	context.JSON(http.StatusOK, gin.H{"message": "Group chat updated successfully"})
 }
 
+// GroupChatDelete godoc
+// @Summary Delete group chat
+// @Description Deletes a group chat, operation allowed only for the owner
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Group Chat ID"
+// @Success 200 {string} string "Group chat deleted successfully"
+// @Failure 401 {string} string "Unauthorized access"
+// @Failure 403 {string} string "Not the owner"
+// @Failure 404 {string} string "Group chat not found"
+// @Router /group-chat/{id} [delete]
 func GroupChatDelete(context *gin.Context) {
 	id := context.Param("id")
 	userId, exists := context.Get("userId")
@@ -267,6 +326,24 @@ func GroupChatGetMessages(c *gin.Context) {
 	c.JSON(http.StatusOK, simplifiedMessages)
 }
 
+// GroupChatUpdateInfos godoc
+// @Summary Update group chat information
+// @Description Updates specific information of a group chat by the owner
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Group Chat ID"
+// @Param name formData string false "New name of the group chat"
+// @Param activity formData string false "New activity of the group chat"
+// @Param catchPhrase formData string false "New catchphrase of the group chat"
+// @Param image formData file false "New image for the group chat"
+// @Success 200 {string} string "Group chat information updated successfully"
+// @Failure 401 {string} string "Unauthorized access"
+// @Failure 403 {string} string "Not the owner"
+// @Failure 404 {string} string "Group chat not found"
+// @Failure 500 {string} string "Failed to update group chat information"
+// @Router /group-chat/infos/{id} [patch]
 func GroupChatUpdateInfos(context *gin.Context) {
 	grouChatId := context.Param("id")
 
@@ -335,6 +412,20 @@ func GroupChatUpdateInfos(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"message": "Group chat updated successfully"})
 }
 
+// GroupChatGetById godoc
+// @Summary Retrieve a specific group chat by ID
+// @Description Retrieves detailed information about a specific group chat, including its members, based on the user's role and permissions.
+// @Tags group-chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path string true "Group Chat ID"
+// @Success 200 {object} swaggermodels.GroupChatSwagger "Detailed information of the group chat including members"
+// @Failure 401 {string} string "Unauthorized if user ID is not provided or user is not authenticated"
+// @Failure 403 {string} string "Forbidden if user is neither an admin nor a member/owner of the group chat"
+// @Failure 404 {string} string "Not Found if the group chat does not exist"
+// @Failure 500 {string} string "Internal server error if there are database errors"
+// @Router /group-chat/{id} [get]
 func GroupChatGetById(context *gin.Context) {
 	groupChatId := context.Param("id")
 	userId, exists := context.Get("userId")
@@ -349,6 +440,25 @@ func GroupChatGetById(context *gin.Context) {
 		return
 	}
 
+	var groupChat models.GroupChat
+
+	// Vérifier si le user est un admin (bypass la vérification si oui)
+	if roleCheck.IsAdmin(context) {
+		result := initializers.DB.Preload("Users.User").First(&groupChat, groupChatId)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				context.JSON(http.StatusNotFound, gin.H{"error": "Group chat not found"})
+				return
+			}
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "Database error when retrieving group chat"})
+			return
+		}
+
+		context.JSON(http.StatusOK, groupChat)
+		return
+	}
+
+	// Vérification des droits d'accès pour les utilisateurs non-admin
 	var groupChatUser models.GroupChatUser
 	result := initializers.DB.Where("group_chat_id = ? AND user_id = ?", groupChatId, userID).First(&groupChatUser)
 	if result.Error != nil {
@@ -360,7 +470,6 @@ func GroupChatGetById(context *gin.Context) {
 		return
 	}
 
-	var groupChat models.GroupChat
 	result = initializers.DB.Preload("Users.User").First(&groupChat, groupChatId)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -371,12 +480,5 @@ func GroupChatGetById(context *gin.Context) {
 		return
 	}
 
-	// Prepare response
-	response := struct {
-		models.GroupChat
-	}{
-		GroupChat: groupChat,
-	}
-
-	context.JSON(http.StatusOK, response)
+	context.JSON(http.StatusOK, groupChat)
 }

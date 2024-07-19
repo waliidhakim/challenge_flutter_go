@@ -32,9 +32,9 @@ class UpdateUserDialog {
                 //     controller: _passwordController,
                 //     decoration: InputDecoration(labelText: 'Password'),
                 //     obscureText: true),
-                TextField(
-                    controller: _phoneController,
-                    decoration: InputDecoration(labelText: 'Phone')),
+                // TextField(
+                //     controller: _phoneController,
+                //     decoration: InputDecoration(labelText: 'Phone')),
               ],
             ),
           ),

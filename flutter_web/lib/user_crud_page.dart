@@ -89,6 +89,20 @@ class _UserCrudPageState extends State<UserCrudPage> {
               ),
             ),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: _previousPage,
+                child: Text('Previous'),
+              ),
+              SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: _nextPage,
+                child: Text('Next'),
+              ),
+            ],
+          ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -106,20 +120,6 @@ class _UserCrudPageState extends State<UserCrudPage> {
                 rows: _users.map((user) => _buildRow(user)).toList(),
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: _previousPage,
-                child: Text('Previous'),
-              ),
-              SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: _nextPage,
-                child: Text('Next'),
-              ),
-            ],
           ),
         ],
       ),

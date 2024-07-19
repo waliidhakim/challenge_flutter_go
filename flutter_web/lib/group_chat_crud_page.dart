@@ -68,6 +68,20 @@ class _GroupChatCrudPageState extends State<GroupChatCrudPage> {
               ),
             ),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => {},
+                child: Text('Previous'),
+              ),
+              SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () => {},
+                child: Text('Next'),
+              ),
+            ],
+          ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,

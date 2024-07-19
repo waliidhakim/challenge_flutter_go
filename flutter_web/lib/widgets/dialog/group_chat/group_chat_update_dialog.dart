@@ -5,9 +5,11 @@ class UpdateGroupChatDialog extends StatefulWidget {
   final Map<String, dynamic> groupChatData;
   final VoidCallback onUpdateSuccess;
 
-  const UpdateGroupChatDialog(
-      {Key? key, required this.groupChatData, required this.onUpdateSuccess})
-      : super(key: key);
+  const UpdateGroupChatDialog({
+    Key? key,
+    required this.groupChatData,
+    required this.onUpdateSuccess,
+  }) : super(key: key);
 
   static void show(BuildContext context, Map<String, dynamic> groupChatData,
       VoidCallback onUpdateSuccess) {
@@ -15,7 +17,9 @@ class UpdateGroupChatDialog extends StatefulWidget {
       context: context,
       builder: (BuildContext context) {
         return UpdateGroupChatDialog(
-            groupChatData: groupChatData, onUpdateSuccess: onUpdateSuccess);
+          groupChatData: groupChatData,
+          onUpdateSuccess: onUpdateSuccess,
+        );
       },
     );
   }
@@ -53,9 +57,16 @@ class _UpdateGroupChatDialogState extends State<UpdateGroupChatDialog> {
         });
         widget.onUpdateSuccess();
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('GroupChat updated successfully'),
+              backgroundColor: Colors.green),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update group chat: $e')),
+          SnackBar(
+              content: Text('Failed to update group chat: $e'),
+              backgroundColor: Colors.red),
         );
       }
     }
